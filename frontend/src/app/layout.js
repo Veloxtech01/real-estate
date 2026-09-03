@@ -2,6 +2,8 @@ import { Playfair_Display, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import siteConfig from "@/config/site";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 /**
  * Fonts are self-hosted through next/font (zero layout shift, no external request to
@@ -37,7 +39,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        {children}
+        <Header />
+        {/* Grows to push the footer down on short pages. */}
+        <main className="flex-1">{children}</main>
+        <Footer />
         {/* Single toast portal for the whole app — components call toast() directly. */}
         <Toaster position="bottom-center" />
       </body>

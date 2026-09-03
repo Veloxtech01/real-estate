@@ -76,11 +76,12 @@ Two-package repo, MERN-family stack:
 >   Router, `src/` dir, `@/*` import alias, Tailwind v4 via `@tailwindcss/postcss`.
 >   Dependencies installed (axios, react-hook-form, react-icons, react-tooltip,
 >   react-hot-toast, motion; dev: oxlint, vitest, jsdom, Testing Library,
->   `@vitejs/plugin-react`). Test harness wired up
+>   `@vitejs/plugin-react`, `@testing-library/user-event`; plus `leaflet` +
+>   `react-leaflet` for the property map). Test harness wired up
 >   ([frontend/vitest.config.mjs](frontend/vitest.config.mjs) +
->   [frontend/vitest.setup.js](frontend/vitest.setup.js), harness smoke test passing).
->   **Still only Next's default placeholder page** — no Header/Footer/Home, no theme
->   config, no admin panel, no auth, no API calls.
+>   [frontend/vitest.setup.js](frontend/vitest.setup.js)).
+>   Public site built (see the status list below); **no admin panel and no auth
+>   yet** — the frontend makes no authenticated calls.
 > - `/backend` — runnable API skeleton, **zero domain logic**:
 >   [index.js](backend/index.js) (boot + graceful shutdown),
 >   [app.js](backend/app.js) (`createApp()`, CORS, parsers, `/api` rate limit),
@@ -110,15 +111,21 @@ Two-package repo, MERN-family stack:
 > - **AI natural-language search built** (`POST /api/search`) — deterministic
 >   Nigerian phrase parser, parse cache, Claude fallback, spend cap + kill switch.
 >   **AI is disabled by default** and works without it.
-> - **Not built:** enquiry inbox, viewing management, staff management, blog editor,
->   settings admin, media upload — and the entire frontend beyond the Next.js
->   placeholder page.
-> - 134/134 backend tests pass, both packages lint clean.
-> - **No database.** `MONGODB_URI` is unset, and `connectDB()` deliberately warns and
->   boots anyway so the HTTP layer is testable. Once a cluster exists, that branch
->   should become a hard failure. See [backend/.env.example](backend/.env.example).
+> - **Lead operations built** — `/api/admin/enquiries` (inbox, stats, status, notes,
+>   assignment) and `/api/admin/viewings` (diary, accept/reject/reschedule) with §7
+>   ownership scoping, a server-enforced viewing status transition whitelist, and
+>   NDPA hard deletion restricted to administrators.
+> - **Frontend public site built** — theme tokens + `config/site.js` rebrand seam,
+>   header/footer, homepage, `/properties` search (SSR, URL-as-state), and
+>   `/property/[slug]` detail with gallery, Leaflet map, enquiry form, JSON-LD,
+>   sitemap and robots. 55/55 frontend tests pass.
+> - **Not built:** staff management, blog editor, settings admin, media upload, the
+>   §4.3 daily digest — and the entire admin panel UI, neighbourhood/agent pages,
+>   marketing pages and blog on the frontend.
+> - 189/189 backend tests and 55/55 frontend tests pass; both packages lint clean.
 >
-> Do not build product features (pages, models, admin) until asked.
+> Build only what has been asked for — check the "Not built" list above before
+> assuming a feature area is in scope.
 
 > ⚠️ **Next.js 16 is newer than most training data.** `frontend/AGENTS.md` (auto-generated
 > and re-added by `next dev`) warns that APIs, conventions, and file structure may differ
@@ -438,6 +445,38 @@ if needed and permitted)* → whitelist validation → same query engine → chi
 | PATCH/DELETE | `/api/admin/properties/:id` | Update; DELETE is a **soft** delete |
 | POST | `/api/admin/properties/:id/restore` | Undo a soft delete |
 | POST | `/api/admin/properties/:id/feature` | **Administrator only** |
+| GET | `/api/admin/enquiries` | Inbox: `status`, `type`, `source`, `agent`, `property`, `q`, `dateFrom/To`, `sort` |
+| GET | `/api/admin/enquiries/stats` | Counts by status — must stay declared before `/:id` |
+| GET/PATCH | `/api/admin/enquiries/:id` | Detail incl. `notes`; PATCH writes `status`, `notes`, `agent` |
+| DELETE | `/api/admin/enquiries/:id` | **Administrator only**, and a **hard** delete |
+| GET | `/api/admin/viewings` | Diary, soonest-first; `upcoming=true` hides the past |
+| GET/PATCH | `/api/admin/viewings/:id` | Detail incl. `notes`; PATCH drives the state machine |
+| DELETE | `/api/admin/viewings/:id` | **Administrator only**, and a **hard** delete |
+
+**Lead operation rules:**
+- **Agents see only leads assigned to them; unassigned leads are administrator-only.**
+  A contact-page enquiry belongs to nobody until an admin assigns it. `scopeLeadQuery`
+  in [auth.js](backend/middleware/auth.js) is applied **last** when building a list
+  query, so `?agent=<colleague>` can never widen an agent's scope. Don't reorder it.
+- Ownership violations return **403** here, not 404 — these are authenticated
+  colleagues. The public surface still 404s; that rule is unchanged.
+- **Deletion is hard, not soft, and administrator-only.** NDPA 2023 erasure means the
+  personal data is gone; a tombstone keeping name/phone/email answers no erasure
+  request. This deliberately differs from the soft delete on properties.
+- **Viewing status transitions are enforced** by
+  [viewingTransitions.js](backend/utils/viewingTransitions.js), not by the UI hiding a
+  button. Re-applying the current status is a no-op, not a 400 — a double-clicked
+  Accept must not error. `accepted` inherits `requestedFor` when no `scheduledFor` is
+  given; `rescheduled` requires a *different* future one.
+- `contactedAt`, `closedAt` and `respondedAt` are stamped by model hooks and are **not**
+  in either `WRITABLE_FIELDS`. They are response-time metrics — a writable timestamp is
+  a falsifiable one. Controllers use `save()`, never `findByIdAndUpdate`, so the hooks
+  actually run.
+- `notes` is `select: false` on both models: absent from lists, explicitly selected on
+  detail. Never surface it publicly.
+- Prospect emails on accept/reject/reschedule are sent **after** the response and are
+  best-effort, matching the public lead endpoints. A mail failure must never undo a
+  status change.
 
 **Auth rules:**
 - Token lives in an **httpOnly cookie** (`re_token`), never a response body or

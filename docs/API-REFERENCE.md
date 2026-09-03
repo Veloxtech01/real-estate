@@ -326,9 +326,114 @@ Local admin credentials are in `backend/.env` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_
 
 ---
 
+## Lead operations (admin)
+
+The enquiry inbox and the viewing diary. Every route requires a session; none is public.
+
+### Ownership — read this before building the UI
+
+- An **agent sees only leads assigned to them.** An **administrator sees everything.**
+- **Unassigned leads are administrator-only.** A contact-page enquiry or a valuation
+  request belongs to nobody until an administrator assigns it, so no agent sees it.
+- A violation is **403**, not 404 — unlike the public surface, these are authenticated
+  colleagues and the clearer error is more useful than hiding existence.
+- Ownership is applied **last** when building the list query, so
+  `?agent=<colleague id>` can never widen an agent's scope.
+- `notes` is `select: false` on both models: **absent from list responses, present on
+  detail responses.** Never render it publicly.
+
+### `GET /api/admin/enquiries` — the inbox
+
+Query: `status`, `type`, `source`, `agent`, `property`, `q`, `dateFrom`, `dateTo`,
+`sort`, `page`, `limit`.
+
+- `q` searches `name`, `phone` and `email`. Regex metacharacters are escaped, so `.*`
+  matches the literal string.
+- Enum filters are validated against `constants.js`; an unrecognised value is **ignored**
+  rather than rejected, so a stale admin UI never breaks the inbox.
+- `sort=oldest` inverts the default newest-first order, for working a backlog.
+- `page` defaults 1, `limit` defaults 20 and is capped at 100.
+
+Returns `{ enquiries, pagination }`.
+
+### `GET /api/admin/enquiries/stats`
+
+`{ stats: { new, contacted, viewing_booked, closed, total } }` — every
+`ENQUIRY_STATUSES` key is present **even at zero**, so the UI never renders `undefined`.
+Scoped to the caller exactly like the list.
+
+> Declared **before** `/:id` in the router. Adding a route after `/:id` makes it
+> unreachable — the same gotcha as `/properties/featured`.
+
+### `GET /api/admin/enquiries/:id`
+
+`{ enquiry }` with `property` and `agent` populated, **including `notes`**.
+
+### `PATCH /api/admin/enquiries/:id`
+
+Body is allow-listed to `status`, `notes`, `agent`. Everything else is dropped silently.
+
+- `contactedAt` and `closedAt` are stamped by the model's pre-save hook and are **never
+  accepted from the body** — they are the agency's response-time metric, and a writable
+  timestamp is a falsifiable one.
+- `agent` reassignment is **administrator-only** (403 for an agent). An agent must not be
+  able to hand a lead away, nor claim one that was never theirs.
+- An invalid `status` is 400.
+
+### `DELETE /api/admin/enquiries/:id` — administrator only
+
+**Hard delete**, not soft. NDPA 2023 erasure means the personal data is actually gone; a
+tombstone retaining name, phone and email would not satisfy an erasure request. Returns
+204 and writes an audit line to the log.
+
+### `GET /api/admin/viewings` — the diary
+
+Query: `status`, `agent`, `property`, `dateFrom`, `dateTo`, `upcoming`, `page`, `limit`.
+
+Sorted by `requestedFor` **ascending** — a diary reads soonest-first, deliberately unlike
+the inbox. `upcoming=true` hides anything already past.
+
+Returns `{ viewings, pagination }`.
+
+### `GET /api/admin/viewings/:id` · `DELETE /api/admin/viewings/:id`
+
+Detail includes `notes`. DELETE is administrator-only and hard, for the same NDPA reason.
+
+### `PATCH /api/admin/viewings/:id`
+
+Body is allow-listed to `status`, `scheduledFor`, `responseMessage`, `notes`.
+`respondedAt` is stamped by the model hook.
+
+**Status transitions are enforced server-side:**
+
+```
+requested   → accepted | rejected | rescheduled | cancelled
+rescheduled → accepted | rejected | cancelled
+accepted    → completed | cancelled | rescheduled
+rejected · completed · cancelled → terminal
+```
+
+- An illegal transition is **400** naming both states. A completed viewing cannot revert.
+- Re-applying the current status is a **no-op, not an error** — a double-clicked Accept
+  button must not surface a 400.
+- `accepted` **inherits `requestedFor`** when the body omits `scheduledFor`. Accepting the
+  prospect's own suggested time is the common case; the client need not echo it back.
+- `rescheduled` **requires** a `scheduledFor` that is in the future and different from the
+  current one. Otherwise 400.
+
+On accept, reject and reschedule the prospect is emailed — **after** the response is sent,
+best-effort, never failing the write, and skipped entirely when they gave no email
+address.
+
+---
+
 ## Not built yet
 
-No endpoints exist for: enquiry inbox / viewing management (reading or updating
-leads), staff management, blog posts, pages, testimonials, settings updates, or media
-upload. The **models exist** for all of them — only the routes and controllers are
-missing. Don't build admin UI against these until the endpoints are written.
+No endpoints exist for: staff management, blog posts, pages, testimonials, settings
+updates, or media upload. The **models exist** for all of them — only the routes and
+controllers are missing. Don't build admin UI against these until the endpoints are
+written.
+
+The §4.3 **daily enquiry digest** is also unbuilt: it needs a scheduler decision
+(in-process cron vs. a platform cron hitting a protected route) that is really a
+deployment question.

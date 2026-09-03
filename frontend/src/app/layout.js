@@ -4,6 +4,7 @@ import "./globals.css";
 import siteConfig from "@/config/site";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { organizationJsonLd } from "@/lib/seo";
 
 /**
  * Fonts are self-hosted through next/font (zero layout shift, no external request to
@@ -39,6 +40,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col">
+        {/* Site-level structured data — emitted once, on every page. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
         <Header />
         {/* Grows to push the footer down on short pages. */}
         <main className="flex-1">{children}</main>

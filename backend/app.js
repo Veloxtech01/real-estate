@@ -14,6 +14,8 @@ import { enquiryRouter, viewingRouter } from "./routes/enquiryRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminPropertyRoutes from "./routes/adminPropertyRoutes.js";
+import adminEnquiryRoutes from "./routes/adminEnquiryRoutes.js";
+import adminViewingRoutes from "./routes/adminViewingRoutes.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -77,6 +79,8 @@ export function createApp() {
   // route can't be mounted outside the guard by accident.
   app.use("/api/auth", authRoutes);
   app.use("/api/admin/properties", adminPropertyRoutes);
+  app.use("/api/admin/enquiries", adminEnquiryRoutes);
+  app.use("/api/admin/viewings", adminViewingRoutes);
 
   // Anything unmatched becomes a 404 ApiError, then every error — including ones
   // thrown inside async controllers, which Express 5 forwards automatically —

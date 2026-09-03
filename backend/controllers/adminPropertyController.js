@@ -2,6 +2,7 @@ import Property from "../model/propertyModel.js";
 import Location from "../model/locationModel.js";
 import ApiError from "../utils/ApiError.js";
 import { canManageProperty } from "../middleware/auth.js";
+import { buildSearchRegex } from "../utils/escapeRegex.js";
 import { propertySlug } from "../utils/slugify.js";
 import { LISTING_STATUSES, PUBLICATION_STATES } from "../utils/constants.js";
 
@@ -149,10 +150,8 @@ export async function listAdminProperties(req, res) {
   if (req.query.q) {
     const term = String(req.query.q).trim();
     // Reference or title substring — what staff actually search the table by.
-    query.$or = [
-      { reference: new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") },
-      { title: new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") },
-    ];
+    const pattern = buildSearchRegex(term);
+    query.$or = [{ reference: pattern }, { title: pattern }];
   }
 
   const page = Math.max(1, Number(req.query.page) || 1);

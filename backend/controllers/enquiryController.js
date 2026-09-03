@@ -9,9 +9,11 @@ import { sendEmail } from "../utils/emailService.js";
 import {
   agentEnquiryNotification,
   prospectEnquiryConfirmation,
+} from "../emails/enquiryEmails.js";
+import {
   agentViewingNotification,
   prospectViewingConfirmation,
-} from "../emails/enquiryEmails.js";
+} from "../emails/viewingEmails.js";
 import { ENQUIRY_TYPES, ENQUIRY_SOURCES } from "../utils/constants.js";
 
 /**

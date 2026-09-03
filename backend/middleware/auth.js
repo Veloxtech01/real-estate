@@ -85,3 +85,43 @@ export function canManageProperty(user, property) {
 
   return String(property.agent) === String(user._id);
 }
+
+/**
+ * Restrict a lead list query to what the caller may see.
+ *
+ * An administrator sees every lead. An agent sees only leads assigned to them, which
+ * deliberately excludes *unassigned* leads — a contact-page enquiry or a valuation
+ * request belongs to nobody until an administrator assigns it, so no agent should be
+ * reading the prospect's phone number in the meantime.
+ *
+ * MUST be applied last when building a query. Applying it before caller-supplied
+ * filters would let `?agent=<colleague id>` overwrite it and widen the scope.
+ *
+ * Takes: query (object) — the Mongoose filter being assembled; user (req.user).
+ * Returns: the same query object, for chaining.
+ */
+export function scopeLeadQuery(query, user) {
+  if (user.role !== "administrator") {
+    query.agent = user._id;
+  }
+
+  return query;
+}
+
+/**
+ * Whether this account may read or act on one lead (enquiry or viewing).
+ *
+ * Mirrors canManageProperty. An agent gets false for a colleague's lead *and* for an
+ * unassigned one — the same answer, so the response does not distinguish them.
+ *
+ * Takes: user (req.user), lead (Enquiry or Viewing document).
+ * Returns: true when permitted.
+ */
+export function canManageLead(user, lead) {
+  if (user.role === "administrator") return true;
+
+  // An unassigned lead has no agent — String(undefined) must not accidentally match.
+  if (!lead.agent) return false;
+
+  return String(lead.agent) === String(user._id);
+}

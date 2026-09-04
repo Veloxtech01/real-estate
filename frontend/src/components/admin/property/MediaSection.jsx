@@ -2,40 +2,53 @@
 
 import { Controller } from "react-hook-form";
 import { FormSection, TextField } from "./fields";
-import CoverImagePicker from "@/components/admin/CoverImagePicker";
+import MediaManager from "@/components/admin/MediaManager";
 
 /**
- * Cover image plus the floor plan URL.
+ * The listing gallery plus the floor plan URL.
  *
- * Floor plan is a plain string on the model, so it stays a URL input even once uploads
- * exist. The cover is a reference to a PropertyMedia record, which is why it is a
- * picker over what the listing already has rather than a pasted URL. The social share
- * image lives in the SEO section, where it is actually used.
+ * Floor plan stays a URL input: it is a plain string on the model, and file upload for
+ * it is out of scope for this slice. The gallery is a full manager — upload, order,
+ * alt text, delete — because photographs are the listing's main content.
  *
- * Takes: register, errors, control (react-hook-form), media (array).
+ * The cover is the one thing here that is a form field. It is a reference to a
+ * PropertyMedia record, so it saves with the listing; everything else the manager does
+ * commits immediately (see MediaManager for why).
+ *
+ * Takes: register, errors, control (react-hook-form), media (array),
+ *        propertyId (string|null), onMediaChange (function).
  */
-export default function MediaSection({ register, errors, control, media }) {
+export default function MediaSection({
+  register,
+  errors,
+  control,
+  media,
+  propertyId,
+  onMediaChange,
+}) {
   return (
     <FormSection
       id="media"
       title="Media"
-      description="Choose which existing image leads the listing."
+      description="Add photographs, put them in order, and choose which one leads the listing."
     >
       <div className="sm:col-span-2">
         {/* Not a <label>: a radiogroup has no single control to point at, and the
-            picker carries its own aria-label. */}
-        <span className="mb-1 block text-sm text-ink-soft">Cover image</span>
+            gallery carries its own aria-label. */}
+        <span className="mb-1 block text-sm text-ink-soft">Photos</span>
 
-        {/* A picture grid isn't an input, so it goes through Controller rather than
-            register — the only field in the form that needs it. */}
+        {/* A picture grid isn't an input, so the cover goes through Controller rather
+            than register — the only field in the form that needs it. */}
         <Controller
           name="coverImage"
           control={control}
           render={({ field }) => (
-            <CoverImagePicker
+            <MediaManager
+              propertyId={propertyId}
               media={media}
               value={field.value}
               onChange={field.onChange}
+              onMediaChange={onMediaChange}
             />
           )}
         />

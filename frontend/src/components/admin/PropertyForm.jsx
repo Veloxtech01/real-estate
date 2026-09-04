@@ -232,6 +232,12 @@ export default function PropertyForm({
             errors={errors}
             control={control}
             media={media}
+            // Null while creating: with no listing id there is no Cloudinary folder
+            // and no ownership check, so the gallery renders a save-first message.
+            propertyId={property?._id ?? null}
+            // The same refetch the form uses after a save. Media mutations commit
+            // immediately, so the gallery has to be reloaded without a save.
+            onMediaChange={onSaved}
           />
           <SeoSection
             register={register}

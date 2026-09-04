@@ -128,3 +128,50 @@ export async function updateViewing(id, body) {
 export async function deleteViewing(id) {
   await apiClient.delete(`/admin/viewings/${id}`);
 }
+
+/**
+ * Authorise one direct-to-Cloudinary upload for a listing.
+ *
+ * Rate-limited server-side (every call authorises spend), so lib/uploadMedia.js
+ * validates the file before asking for one.
+ */
+export async function createUploadSignature(propertyId) {
+  const { data } = await apiClient.post(
+    `/admin/properties/${propertyId}/media/signature`,
+  );
+  return data.data;
+}
+
+/**
+ * Attach an already-uploaded Cloudinary asset to a listing.
+ *
+ * `body` carries `publicId` and optionally `alt` — nothing else is honoured. The API
+ * re-reads url, dimensions and byte count from Cloudinary rather than trusting us.
+ */
+export async function registerMedia(propertyId, body) {
+  const { data } = await apiClient.post(`/admin/properties/${propertyId}/media`, body);
+  return data.data.media;
+}
+
+/** Rewrite gallery order. `ids` must list every image in the listing exactly once. */
+export async function reorderMedia(propertyId, ids) {
+  const { data } = await apiClient.patch(
+    `/admin/properties/${propertyId}/media/order`,
+    { ids },
+  );
+  return data.data.media;
+}
+
+/** Edit an image's alt text. No other field is writable. */
+export async function updateMedia(propertyId, mediaId, body) {
+  const { data } = await apiClient.patch(
+    `/admin/properties/${propertyId}/media/${mediaId}`,
+    body,
+  );
+  return data.data.media;
+}
+
+/** Permanent — destroys the Cloudinary asset too, unlike a listing's soft delete. */
+export async function deleteMedia(propertyId, mediaId) {
+  await apiClient.delete(`/admin/properties/${propertyId}/media/${mediaId}`);
+}

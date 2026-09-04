@@ -8,8 +8,8 @@ import { Skeleton } from "@/components/ui/Skeleton";
 /**
  * Create a listing.
  *
- * Only the reference payload is needed — there is no record yet, and no gallery until
- * the media slice exists.
+ * Only the reference payload is needed — there is no record yet, so there is no
+ * gallery either; the media section says as much until the listing is saved.
  */
 export default function NewPropertyPage() {
   const { data: reference, loading, error } = useAdminResource(getAdminReference, []);

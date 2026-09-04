@@ -53,6 +53,9 @@ export function assertTransition(from, to) {
   }
 
   if (!allowed.includes(to)) {
-    throw new ApiError(400, `A ${from} viewing cannot be moved to ${to}.`);
+    // This message is shown verbatim in the admin UI, so the article has to agree —
+    // "A accepted viewing" reads as a bug to the person who sees it.
+    const article = /^[aeiou]/.test(from) ? "An" : "A";
+    throw new ApiError(400, `${article} ${from} viewing cannot be moved to ${to}.`);
   }
 }

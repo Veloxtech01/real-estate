@@ -119,10 +119,14 @@ Two-package repo, MERN-family stack:
 >   header/footer, homepage, `/properties` search (SSR, URL-as-state), and
 >   `/property/[slug]` detail with gallery, Leaflet map, enquiry form, JSON-LD,
 >   sitemap and robots. 55/55 frontend tests pass.
+> - **Admin panel shell + lead screens built** — `/admin/login`, the authenticated
+>   shell, a dashboard, and master-detail enquiry inbox and viewing diary at
+>   `/admin/enquiries` and `/admin/viewings`.
 > - **Not built:** staff management, blog editor, settings admin, media upload, the
->   §4.3 daily digest — and the entire admin panel UI, neighbourhood/agent pages,
+>   §4.3 daily digest — plus the **admin listings table and editor** (the panel's
+>   Listings nav entry is deliberately disabled), and neighbourhood/agent pages,
 >   marketing pages and blog on the frontend.
-> - 189/189 backend tests and 55/55 frontend tests pass; both packages lint clean.
+> - 189/189 backend tests and 81/81 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -289,6 +293,39 @@ Vite-based sibling project — Next.js needs its own v4 integration.
 
 - Use `react-hot-toast` for transient notifications (e.g. enquiry submitted, saved).
 - Create a single `<Toaster />` near your app root and call `toast()` from components or hooks.
+
+### Admin panel conventions
+
+- **Route groups split the app.** `src/app/(site)/` holds the public pages and mounts
+  `Header`/`Footer`; `src/app/admin/` has its own chrome. Parentheses contribute nothing
+  to the URL, so every public path is unchanged. `not-found.js` and `error.js` live in
+  `(site)` — a root-level `not-found` renders outside every group's layout and would lose
+  the navigation. **`sitemap.js` and `robots.js` stay at `app/` root.**
+- **The admin is client-rendered; the public site is server-rendered.** Deliberate: the
+  admin has no SEO need and cookie auth is already wired into the Axios instance. Don't
+  "fix" the inconsistency.
+- **Auth is three layers, and only the third is real.**
+  1. `src/proxy.js` — Next 16 renamed Middleware to **Proxy**. It checks cookie
+     *presence* only, to avoid flashing empty chrome. It is an **optimistic check, never
+     authorization** — the signing key is the backend's.
+  2. `AdminSessionProvider` calls `/api/auth/me` once and renders **nothing** until it
+     resolves, so screens can read `user.role` unconditionally.
+  3. The API. `requireAuth` re-loads the account every request. This is the gate.
+- The Axios 401 interceptor redirects to `/admin/login`, guarded against the login page
+  itself (where a 401 is just a wrong password). Handled once — never per call site.
+- **Admin reads go through `useAdminResource`**, which discards stale responses so fast
+  filter changes can't render an older result set over a newer one. **Mutations don't** —
+  they call `lib/api/admin.js` directly, then `refetch()`. No optimistic updates, on
+  purpose: a wrong optimistic state on a lead is worse than a short wait.
+- All admin URLs live in `src/lib/api/admin.js`. Never build one at a call site.
+- **`src/lib/viewingTransitions.js` mirrors the backend table with one-way authority:**
+  it decides which *buttons render*; the backend decides what is *allowed*. On a drift the
+  API's 400 is shown verbatim. Never invert this by trusting the frontend copy.
+- **Role-gated controls are courtesy, not security.** The API enforces permissions
+  regardless of what renders. Hiding Delete from an agent is a nicety; the 403 is the rule.
+- Inbox and diary keep **selection and filters in the URL** (`?id=`, `?status=`), the same
+  discipline as the public search. Changing a filter clears the selection, because the
+  selected row may not survive the new filter.
 
 ---
 

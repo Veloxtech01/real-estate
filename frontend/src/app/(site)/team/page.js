@@ -1,10 +1,10 @@
 import Section from "@/components/ui/Section";
 import TeamCard from "@/components/team/TeamCard";
 import { getAgents } from "@/lib/api/server";
-import siteConfig from "@/config/site";
 
+// Root layout's title template appends " — {siteConfig.name}" — don't repeat it here.
 export const metadata = {
-  title: `Meet the team | ${siteConfig.name}`,
+  title: "Meet the team",
   description: "The consultants behind every listing.",
 };
 

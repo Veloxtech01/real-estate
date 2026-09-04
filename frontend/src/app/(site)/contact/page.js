@@ -5,8 +5,9 @@ import OfficeMap from "@/components/contact/OfficeMap";
 import contactContent from "@/content/contact";
 import siteConfig from "@/config/site";
 
+// Root layout's title template appends " — {siteConfig.name}" — don't repeat it here.
 export const metadata = {
-  title: `Contact us | ${siteConfig.name}`,
+  title: "Contact us",
   description: contactContent.intro,
 };
 

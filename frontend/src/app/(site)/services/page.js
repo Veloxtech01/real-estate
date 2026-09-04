@@ -2,14 +2,14 @@ import { FiHome, FiKey, FiClipboard, FiTool, FiTrendingUp, FiMap } from "react-i
 import Section from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
 import servicesContent from "@/content/services";
-import siteConfig from "@/config/site";
 
 // Positional icon set, one per entry in servicesContent.items — same pattern as
 // the homepage trust band's TRUST_ICONS.
 const SERVICE_ICONS = [FiHome, FiKey, FiClipboard, FiTool, FiTrendingUp, FiMap];
 
+// Root layout's title template appends " — {siteConfig.name}" — don't repeat it here.
 export const metadata = {
-  title: `Services | ${siteConfig.name}`,
+  title: "Services",
   description: servicesContent.description,
 };
 

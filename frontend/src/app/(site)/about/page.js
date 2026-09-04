@@ -7,8 +7,9 @@ import siteConfig from "@/config/site";
 // band's TRUST_ICONS (icons live in the page, not the content module).
 const VALUE_ICONS = [FiShield, FiUser, FiFileText];
 
+// Root layout's title template appends " — {siteConfig.name}" — don't repeat it here.
 export const metadata = {
-  title: `About us | ${siteConfig.name}`,
+  title: "About us",
   description: aboutContent.intro,
 };
 

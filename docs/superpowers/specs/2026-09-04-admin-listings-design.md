@@ -63,7 +63,9 @@ One authenticated preload call for everything the editor's controls need that
 
 Returns `listingStatuses`, `publicationStates`, `chargePeriods`, `powerSources`,
 `waterSources`, `meteringTypes`, `floodRiskLevels`, `roadConditions`, `landUnits`
-(the `LAND_UNITS_IN_SQM` keys, for the land-size unit converter), `stateRentRules`
+(the `LAND_UNITS_IN_SQM` map — factors included, since the API accepts only
+`landSizeSqm` and the editor must convert, and a hardcoded client copy of "a plot is
+648 sqm" would silently mis-store Lagos land), `stateRentRules`
 (the whole `STATE_RENT_RULES` table plus its default), and `agents`.
 
 `agents` is `_id`, `name`, `slug`, `canPublish`, `isActive` — active agents only. It

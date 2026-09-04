@@ -311,9 +311,11 @@ is unreadable from JS. The shared Axios instance must set `withCredentials: true
 | GET | `/api/auth/me` | Restores session on reload; 401 when signed out |
 | POST | `/api/auth/change-password` | `{ currentPassword, newPassword }`; **signs the session out** |
 | GET/POST | `/api/admin/properties` | Table (incl. drafts, `?includeDeleted=true`) / create |
+| GET | `/api/admin/properties/:id` | One listing **plus its media gallery** — what the editor loads |
 | PATCH/DELETE | `/api/admin/properties/:id` | Update / **soft** delete |
 | POST | `/api/admin/properties/:id/restore` | Undo soft delete |
 | POST | `/api/admin/properties/:id/feature` | **Administrator only** (403 for agents) |
+| GET | `/api/admin/reference` | Every enum, the rent-rule table, land-unit factors, areas, taxonomy, staff |
 
 - `role` is `administrator` | `agent`. Agents see and edit **only their own** listings.
 - An agent with `canPublish: false` gets **403** when setting `publicationState:
@@ -323,6 +325,119 @@ is unreadable from JS. The shared Axios instance must set `withCredentials: true
   Axios interceptor and redirect to login, not per call site.
 
 Local admin credentials are in `backend/.env` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`).
+
+### `GET /api/admin/properties/:id` — the listing editor's load
+
+```json
+{
+  "success": true,
+  "data": {
+    "property": {
+      "_id": "6a99b588fcd254d91ec3ad0a",
+      "reference": "REF1009",
+      "title": "Grand 5 Bedroom Mansion in Akobo",
+      "slug": "grand-5-bedroom-mansion-in-akobo-REF1009",
+      "listingType": "rent",
+      "propertyType": "detached_house",
+      "status": "available",
+      "publicationState": "published",
+      "deletedAt": null,
+      "isFeatured": false,
+      "state": "Oyo",
+      "landmark": "…",
+      "price": { "currency": "NGN", "isNegotiable": false, "onRequest": false },
+      "rent": { "amount": 4500000, "period": "per_annum", "advanceYears": 1 },
+      "infrastructure": { "power": ["grid_band_a"], "water": ["borehole"] },
+      "location": { "_id": "…", "name": "Akobo", "slug": "akobo-oyo", "state": "Oyo" },
+      "agent": { "_id": "…", "name": "Ifeanyi Eze", "slug": "ifeanyi-eze" },
+      "tags": [{ "_id": "…", "key": "walk_in_closet", "name": "Walk-in closet", "category": "amenity" }],
+      "coverImage": { "_id": "…", "url": "…", "thumbnailUrl": "…", "alt": "…" }
+    },
+    "media": [
+      {
+        "_id": "…",
+        "property": "…",
+        "url": "…",
+        "publicId": "…",
+        "thumbnailUrl": "…",
+        "type": "image",
+        "alt": "…",
+        "displayOrder": 0
+      }
+    ]
+  }
+}
+```
+
+- **`location`, `agent`, `tags` and `coverImage` come back populated here**, but a
+  create/update response returns them as **bare ids**. Anything loading a form from
+  both has to handle each — see `toFormValues` in `frontend/src/lib/propertyForm.js`.
+- `media` is sorted by `displayOrder` and is the array the cover picker renders. Empty
+  on any listing created since seeding, because there is no upload endpoint yet.
+- `documents` is **never** returned (`select: false` on the model) and is not writable.
+- Same ownership rule as the lead endpoints: **403**, not 404, when an agent asks for a
+  colleague's listing. 404 only when the id genuinely doesn't exist.
+- Soft-deleted listings **are** returned, so a deleted record can still be reviewed and
+  restored.
+
+### `GET /api/admin/reference` — editor vocabulary, in one call
+
+Everything the listing editor's controls need, served from `backend/utils/constants.js`
+so the form can never offer a value the schema enums reject.
+
+```json
+{
+  "success": true,
+  "data": {
+    "listingTypes": ["sale", "rent"],
+    "listingStatuses": ["available", "under_offer", "…"],
+    "publicationStates": ["draft", "published"],
+    "propertyTypes": ["apartment", "mini_flat", "…"],
+    "titleTypes": ["c_of_o", "governors_consent", "…"],
+    "rentPeriods": ["per_annum", "per_quarter", "per_month"],
+    "chargePeriods": ["per_annum", "per_quarter", "per_month", "one_off"],
+    "currencies": ["NGN", "USD"],
+    "powerSources": ["grid_band_a", "grid_band_b", "…"],
+    "waterSources": ["borehole", "well", "…"],
+    "meteringTypes": ["prepaid", "postpaid", "none"],
+    "floodRiskLevels": ["none", "low", "moderate", "high"],
+    "roadConditions": ["tarred", "graded", "untarred"],
+    "landUnits": { "sqm": 1, "plot": 648, "plot_lagos": 464, "acre": 4046.86, "hectare": 10000 },
+    "stateRentRules": {
+      "Lagos": { "maxAgencyFeePct": 10, "maxAdvanceYears": 1 },
+      "default": { "maxAgencyFeePct": 100, "maxAdvanceYears": 10 }
+    },
+    "locations": [{ "_id": "…", "name": "Akobo", "slug": "akobo-oyo", "state": "Oyo" }],
+    "taxonomy": [{ "_id": "…", "key": "swimming_pool", "name": "Swimming pool", "category": "amenity" }],
+    "agents": [{ "_id": "…", "name": "Adebayo Akinyemi", "slug": "…", "canPublish": false, "isActive": true }]
+  }
+}
+```
+
+- **`agents` is absent — not null, not empty — for a non-administrator.** An agent
+  cannot reassign ownership, so the roster isn't served to them. Code that maps over it
+  must default (`reference.agents ?? []`).
+- `landUnits` carries the **factors**, not just the names, because the API accepts only
+  `landSizeSqm` and the client has to convert. Never hardcode "a plot is 648 sqm" —
+  it is 464 in parts of Lagos.
+- `stateRentRules` is for a pre-submit warning only. `propertyModel`'s `pre("validate")`
+  is the authority, and it is the only place the statutory limits are enforced.
+- `locations` and `taxonomy` overlap `/api/filters` on purpose: the public payload is
+  shaped for visitors and is free to drop a field no searcher uses, but the editor still
+  has to be able to file a listing under it.
+
+### Writing a listing — traps
+
+- **`state` is derived, never sent.** The server reads it from the chosen location.
+  Sending it is ignored; the point is that a client can't file a Lagos listing under
+  another state and slip past the 10% agency-fee cap.
+- **A sale must not carry `rent`, and a rental must carry it.** The model invalidates
+  both cases outright.
+- `price.onRequest: true` means **omit `price.amount`** — it is a genuine state, not a
+  zero.
+- A 400 returns `details` keyed by **dotted field path** (`"rent.agencyFeePct":
+  "Agency fee cannot exceed 10% in Lagos"`), which maps directly onto react-hook-form
+  field names.
 
 ---
 
@@ -433,6 +548,11 @@ No endpoints exist for: staff management, blog posts, pages, testimonials, setti
 updates, or media upload. The **models exist** for all of them — only the routes and
 controllers are missing. Don't build admin UI against these until the endpoints are
 written.
+
+Media upload in particular: there is **no way to add an image to a listing through the
+API**. `PropertyMedia` records only exist for the seeded demo listings. The listing
+editor can therefore choose a cover from what a listing already has, and nothing more —
+anything created since seeding has an empty gallery.
 
 The §4.3 **daily enquiry digest** is also unbuilt: it needs a scheduler decision
 (in-process cron vs. a platform cron hitting a protected route) that is really a

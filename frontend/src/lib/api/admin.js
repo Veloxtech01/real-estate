@@ -27,6 +27,56 @@ export async function getMe() {
   return data.data;
 }
 
+/**
+ * The editor's vocabulary: every enum, the statutory rent table, land-unit factors,
+ * and (administrators only) the staff roster. Fetched once per editor mount.
+ */
+export async function getAdminReference() {
+  const { data } = await apiClient.get("/admin/reference");
+  return data.data;
+}
+
+/** The listing table. Includes drafts, and soft-deleted rows when asked. */
+export async function getProperties(params = {}) {
+  const { data } = await apiClient.get("/admin/properties", { params });
+  return data.data;
+}
+
+/** One listing plus its media gallery, for the editor. */
+export async function getProperty(id) {
+  const { data } = await apiClient.get(`/admin/properties/${id}`);
+  return data.data;
+}
+
+/** Create. The server assigns the reference, slug, state and ownership. */
+export async function createProperty(body) {
+  const { data } = await apiClient.post("/admin/properties", body);
+  return data.data.property;
+}
+
+/** Update in place. */
+export async function updateProperty(id, body) {
+  const { data } = await apiClient.patch(`/admin/properties/${id}`, body);
+  return data.data.property;
+}
+
+/** Soft delete — unlike a lead, this is reversible via restoreProperty. */
+export async function deleteProperty(id) {
+  await apiClient.delete(`/admin/properties/${id}`);
+}
+
+/** Undo a soft delete. */
+export async function restoreProperty(id) {
+  const { data } = await apiClient.post(`/admin/properties/${id}/restore`);
+  return data.data.property;
+}
+
+/** Toggle homepage placement. Administrator only; the API 403s for anyone else. */
+export async function featureProperty(id, isFeatured) {
+  const { data } = await apiClient.post(`/admin/properties/${id}/feature`, { isFeatured });
+  return data.data.property;
+}
+
 /** The enquiry inbox. `params` is the filter object; axios serialises arrays. */
 export async function getEnquiries(params = {}) {
   const { data } = await apiClient.get("/admin/enquiries", { params });

@@ -1,4 +1,5 @@
 import Property from "../model/propertyModel.js";
+import PropertyMedia from "../model/propertyMediaModel.js";
 import Location from "../model/locationModel.js";
 import ApiError from "../utils/ApiError.js";
 import { canManageProperty } from "../middleware/auth.js";
@@ -178,6 +179,39 @@ export async function listAdminProperties(req, res) {
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     },
   });
+}
+
+/**
+ * GET /api/admin/properties/:id — one listing, for the editor.
+ *
+ * Separate from the public detail endpoint because that one is slug-based and applies
+ * the published scope; the editor works on drafts and soft-deleted records by id.
+ *
+ * Returns the gallery alongside the listing so the cover-image picker has something to
+ * render without a second round trip. `documents` stays unselected (select:false on the
+ * model) — it isn't writable and this screen doesn't edit it.
+ *
+ * Takes: (req, res) — Express handler.
+ * Returns: nothing; sends { success, data: { property, media } }.
+ * Throws: ApiError 404 when missing, 403 when it belongs to another agent.
+ */
+export async function getAdminProperty(req, res) {
+  const property = await loadManageable(req.params.id, req.user);
+
+  // Populated after the ownership check, so an unauthorised caller never triggers
+  // the extra reads.
+  await property.populate([
+    { path: "location", select: "name slug state" },
+    { path: "agent", select: "name slug" },
+    { path: "tags", select: "key name category" },
+    { path: "coverImage", select: "url thumbnailUrl alt" },
+  ]);
+
+  const media = await PropertyMedia.find({ property: property._id })
+    .sort({ displayOrder: 1 })
+    .lean();
+
+  res.status(200).json({ success: true, data: { property, media } });
 }
 
 /**

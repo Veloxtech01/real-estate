@@ -1,14 +1,25 @@
 import Location from "../model/locationModel.js";
+import Agent from "../model/agentModel.js";
 import Taxonomy from "../model/taxonomyModel.js";
 import Property from "../model/propertyModel.js";
 import Settings from "../model/settingsModel.js";
 import ApiError from "../utils/ApiError.js";
 import {
   LISTING_TYPES,
+  LISTING_STATUSES,
+  PUBLICATION_STATES,
   PROPERTY_TYPES,
   TITLE_TYPES,
   RENT_PERIODS,
+  CHARGE_PERIODS,
   CURRENCIES,
+  POWER_SOURCES,
+  WATER_SOURCES,
+  METERING_TYPES,
+  FLOOD_RISK_LEVELS,
+  ROAD_CONDITIONS,
+  LAND_UNITS_IN_SQM,
+  STATE_RENT_RULES,
 } from "../utils/constants.js";
 
 /**
@@ -183,6 +194,91 @@ export async function getPublicSettings(_req, res) {
         // Only whether AI search is available — never the cap or current spend.
         aiSearchEnabled: settings.aiSearch?.enabled ?? false,
       },
+    },
+  });
+}
+
+
+/**
+ * GET /api/admin/reference — the vocabulary the listing editor needs.
+ *
+ * Everything here is already in constants.js, and that is the point: the editor must
+ * offer exactly the values the schema enums and the AI-search validator accept. A
+ * mirrored copy in the front end would drift the first time an enum gained a member.
+ *
+ * Deliberately authenticated rather than folded into /api/filters: listing statuses,
+ * publication states, the statutory rent table and the staff roster are operational
+ * data, and the public filter payload should carry only what a visitor filters by.
+ *
+ * Takes: (req, res) — requires a session (req.user).
+ * Returns: nothing; sends { success, data: { ...enums, stateRentRules, agents? } }.
+ */
+export async function getAdminReference(req, res) {
+  /**
+   * The roster is administrator-only. An agent cannot reassign ownership — the
+   * controller forces their own id — so serving them a colleague list would expose
+   * the staff directory for no functional gain.
+   */
+  const agents =
+    req.user.role === "administrator"
+      ? await Agent.find({ isActive: true })
+          .select("name slug canPublish isActive")
+          .sort({ name: 1 })
+          .lean()
+      : undefined;
+
+  /**
+   * Areas and taxonomy come along too, so the editor preloads in one request.
+   *
+   * They overlap with /api/filters, but the editor must not depend on a payload shaped
+   * for visitors: that one is free to drop a field no searcher uses, and the editor
+   * still has to be able to file a listing under it.
+   */
+  const [locations, taxonomy] = await Promise.all([
+    Location.find({}).select("name slug state").sort({ state: 1, name: 1 }).lean(),
+    Taxonomy.find({ isActive: true })
+      .select("key name category")
+      .sort({ category: 1, displayOrder: 1 })
+      .lean(),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      listingTypes: LISTING_TYPES,
+      listingStatuses: LISTING_STATUSES,
+      publicationStates: PUBLICATION_STATES,
+      propertyTypes: PROPERTY_TYPES,
+      titleTypes: TITLE_TYPES,
+      rentPeriods: RENT_PERIODS,
+      chargePeriods: CHARGE_PERIODS,
+      currencies: CURRENCIES,
+      powerSources: POWER_SOURCES,
+      waterSources: WATER_SOURCES,
+      meteringTypes: METERING_TYPES,
+      floodRiskLevels: FLOOD_RISK_LEVELS,
+      roadConditions: ROAD_CONDITIONS,
+
+      /**
+       * The full unit → sqm map, not just its keys.
+       *
+       * The API accepts only `landSizeSqm`, so the editor has to convert before
+       * submitting — and serving the factors is what stops it hardcoding its own copy
+       * of them. That matters here specifically: a "plot" is ~648 sqm generally but
+       * ~464 sqm in parts of Lagos, so a drifted client factor would silently store
+       * the wrong area.
+       */
+      landUnits: LAND_UNITS_IN_SQM,
+
+      // The whole table, including its default entry, so the form can warn about a
+      // Lagos agency fee before paying for the round trip. The server still decides.
+      stateRentRules: STATE_RENT_RULES,
+
+      locations,
+      taxonomy,
+
+      // Absent, not null, for an agent — the key simply isn't part of their payload.
+      ...(agents ? { agents } : {}),
     },
   });
 }

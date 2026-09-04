@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   listAdminProperties,
+  getAdminProperty,
   createProperty,
   updateProperty,
   softDeleteProperty,
@@ -23,6 +24,9 @@ router.use(requireAuth);
 
 router.get("/", listAdminProperties);
 router.post("/", createProperty);
+
+// Declared after the collection routes; ":id" would otherwise swallow them.
+router.get("/:id", getAdminProperty);
 router.patch("/:id", updateProperty);
 router.delete("/:id", softDeleteProperty);
 router.post("/:id/restore", restoreProperty);

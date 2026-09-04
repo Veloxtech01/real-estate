@@ -71,9 +71,9 @@ Two-package repo, MERN-family stack:
 /docs       Reference docs (PROJECT-SCOPE.md = scope, API-REFERENCE.md = endpoints)
 ```
 
-> **Status: public site and lead operations complete end to end. Listings management
-> and content admin are the open gaps.** Read the "Not built" entry below before
-> assuming any feature area exists.
+> **Status: public site, lead operations and listings management complete end to end.
+> Media upload and content admin are the open gaps.** Read the "Not built" entry below
+> before assuming any feature area exists.
 >
 > - `/frontend` — `create-next-app` scaffold: **Next.js 16.3.4 + React 19.2.8**, App
 >   Router, `src/` dir, `@/*` import alias, Tailwind v4 via `@tailwindcss/postcss`.
@@ -126,11 +126,15 @@ Two-package repo, MERN-family stack:
 > - **Admin panel shell + lead screens built** — `/admin/login`, the authenticated
 >   shell, a dashboard, and master-detail enquiry inbox and viewing diary at
 >   `/admin/enquiries` and `/admin/viewings`.
+> - **Admin listings management built** — the table at `/admin/properties` (drafts,
+>   soft-deleted rows, feature toggle, delete/restore) and the nine-section editor at
+>   `/admin/properties/new` and `/admin/properties/[id]`, backed by two new endpoints:
+>   `GET /api/admin/properties/:id` and `GET /api/admin/reference`. **No photo upload**
+>   — the editor picks a cover from a listing's existing media and nothing more.
 > - **Not built:** staff management, blog editor, settings admin, media upload, the
->   §4.3 daily digest — plus the **admin listings table and editor** (the panel's
->   Listings nav entry is deliberately disabled), and neighbourhood/agent pages,
->   marketing pages and blog on the frontend.
-> - 189/189 backend tests and 81/81 frontend tests pass; both packages lint clean.
+>   §4.3 daily digest — plus neighbourhood/agent pages, marketing pages and blog on
+>   the frontend.
+> - 202/202 backend tests and 120/120 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -333,7 +337,28 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   regardless of what renders. Hiding Delete from an agent is a nicety; the 403 is the rule.
 - Inbox and diary keep **selection and filters in the URL** (`?id=`, `?status=`), the same
   discipline as the public search. Changing a filter clears the selection, because the
-  selected row may not survive the new filter.
+  selected row may not survive the new filter. The listings table follows suit
+  (`?publicationState=`, `?q=`, `?includeDeleted=`, `?page=`); changing a filter resets
+  to page 1.
+- **The listing editor is one long form, not a wizard or tabs**, and it lives at its own
+  route rather than in a detail pane. Nine sections don't fit a master-detail column, a
+  wizard optimises for first creation when the common job is changing one field, and tabs
+  hide validation errors on panels nobody is looking at.
+- **Enum lists are never mirrored in the front end.** `GET /api/admin/reference` serves
+  them from `constants.js` — the same lists the schema enums and the AI-search validator
+  use. A local copy would drift the first time an enum gained a member. This includes the
+  **land-unit factors**: the API takes only `landSizeSqm`, so the client converts, and a
+  hardcoded "a plot is 648 sqm" silently mis-stores Lagos land, where it is ~464.
+- **`state` is displayed in the editor but never submitted.** The server derives it from
+  the chosen area, and that derivation is what stops a Lagos listing being filed under
+  another state to slip past the 10% agency-fee cap. Same one-way authority as
+  `viewingTransitions.js`.
+- **The form's validation rules are advisory; the API's are the rule.** A 400's `details`
+  is keyed by dotted field path, which `lib/apiErrors.js` maps onto the matching input —
+  and anything with no matching field goes to a form-level banner verbatim rather than
+  being swallowed.
+- **Listing deletion is soft and reversible**, unlike a lead's, which is a permanent NDPA
+  erasure. The confirmation wording has to say which one it is.
 
 ---
 
@@ -486,9 +511,11 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 | GET          | `/api/auth/me`                         | Restores admin-panel session on reload                                             |
 | POST         | `/api/auth/change-password`            | Signs the session out afterwards                                                   |
 | GET/POST     | `/api/admin/properties`                | Table (drafts + deleted) and create                                                |
+| GET          | `/api/admin/properties/:id`            | One listing **plus its media gallery** — the editor's load                         |
 | PATCH/DELETE | `/api/admin/properties/:id`            | Update; DELETE is a **soft** delete                                                |
 | POST         | `/api/admin/properties/:id/restore`    | Undo a soft delete                                                                 |
 | POST         | `/api/admin/properties/:id/feature`    | **Administrator only**                                                             |
+| GET          | `/api/admin/reference`                 | Editor vocabulary: enums, rent rules, land-unit factors, areas, taxonomy, staff    |
 | GET          | `/api/admin/enquiries`                 | Inbox: `status`, `type`, `source`, `agent`, `property`, `q`, `dateFrom/To`, `sort` |
 | GET          | `/api/admin/enquiries/stats`           | Counts by status — must stay declared before `/:id`                                |
 | GET/PATCH    | `/api/admin/enquiries/:id`             | Detail incl. `notes`; PATCH writes `status`, `notes`, `agent`                      |

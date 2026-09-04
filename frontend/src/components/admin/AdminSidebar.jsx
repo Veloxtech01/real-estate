@@ -9,15 +9,12 @@ import { useAdminSession } from "@/components/admin/AdminSessionProvider";
 
 /**
  * Admin navigation.
- *
- * Listings is present but disabled — that module is a separate slice, and a visible
- * disabled entry tells staff it is coming rather than implying the panel is complete.
  */
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: FiGrid },
   { href: "/admin/enquiries", label: "Enquiries", icon: FiInbox },
   { href: "/admin/viewings", label: "Viewings", icon: FiCalendar },
-  { href: "/admin/properties", label: "Listings", icon: FiHome, disabled: true },
+  { href: "/admin/properties", label: "Listings", icon: FiHome },
 ];
 
 export default function AdminSidebar() {
@@ -33,19 +30,6 @@ export default function AdminSidebar() {
         // /admin/enquiries?id=x still highlights Enquiries.
         const active =
           item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
-
-        if (item.disabled) {
-          return (
-            <span
-              key={item.href}
-              className="flex min-h-11 cursor-not-allowed items-center gap-3 rounded px-3 text-sm text-muted"
-              title="Coming soon"
-            >
-              <Icon size={18} aria-hidden="true" />
-              {item.label}
-            </span>
-          );
-        }
 
         return (
           <Link

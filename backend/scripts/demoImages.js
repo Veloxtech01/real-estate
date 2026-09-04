@@ -509,67 +509,67 @@ export const DEMO_IMAGES = {
       "sourceUrl": "https://www.pexels.com/photo/white-bathtub-and-sink-in-spacious-bathtub-at-home-6957081/"
     },
     {
-      "url": "https://images.pexels.com/photos/6899357/pexels-photo-6899357.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/6899357/pexels-photo-6899357.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "url": "https://images.pexels.com/photos/7045908/pexels-photo-7045908.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/7045908/pexels-photo-7045908.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
       "width": 1200,
       "height": 800,
-      "alt": "interior of bright washroom with washing machine near toilet next to shower and sink with tap",
+      "alt": "minimalistic interior of modern bathroom with white sink and bath and mirrored cabinet in apartment in daytime",
       "photographer": "Max Vakhtbovych",
-      "sourceUrl": "https://www.pexels.com/photo/restroom-interior-with-toilet-and-washing-machine-near-sink-6899357/"
+      "sourceUrl": "https://www.pexels.com/photo/contemporary-bathroom-with-minimalistic-interior-7045908/"
     },
     {
-      "url": "https://images.pexels.com/photos/189472/pexels-photo-189472.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/189472/pexels-photo-189472.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "url": "https://images.pexels.com/photos/6492399/pexels-photo-6492399.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/6492399/pexels-photo-6492399.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
       "width": 1200,
       "height": 800,
-      "alt": "image of a soap dispenser and a restroom door sign in a public restroom.",
-      "photographer": "Oluwaseun Duncan",
-      "sourceUrl": "https://www.pexels.com/photo/rest-room-door-189472/"
-    },
-    {
-      "url": "https://images.pexels.com/photos/6903210/pexels-photo-6903210.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/6903210/pexels-photo-6903210.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
-      "width": 1200,
-      "height": 800,
-      "alt": "interior of contemporary bathroom with modern toilet and bathtub with mirror hanging above sink",
+      "alt": "shower cabin and ceramic sink in spacious modern bathroom with marble tiled walls and big window with bright lamps",
       "photographer": "Max Vakhtbovych",
-      "sourceUrl": "https://www.pexels.com/photo/stylish-bathroom-with-tiled-floor-and-walls-6903210/"
+      "sourceUrl": "https://www.pexels.com/photo/minimalist-styled-bathroom-with-tiled-walls-and-shower-cabin-6492399/"
     },
     {
-      "url": "https://images.pexels.com/photos/8082195/pexels-photo-8082195.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/8082195/pexels-photo-8082195.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "url": "https://images.pexels.com/photos/6394530/pexels-photo-6394530.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/6394530/pexels-photo-6394530.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
       "width": 1200,
       "height": 800,
-      "alt": "elegant bathroom with marble tiles, large mirror, and modern fixtures.",
+      "alt": "interior of spacious contemporary bathroom with black tiled walls and floor with transparent shower cabin near bidet and sink at mirror",
       "photographer": "Max Vakhtbovych",
-      "sourceUrl": "https://www.pexels.com/photo/interior-of-a-luxury-hotel-bathroom-with-glass-shower-cabin-8082195/"
+      "sourceUrl": "https://www.pexels.com/photo/modern-bathroom-with-shower-cabin-6394530/"
     },
     {
-      "url": "https://images.pexels.com/photos/7031840/pexels-photo-7031840.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/7031840/pexels-photo-7031840.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "url": "https://images.pexels.com/photos/7045352/pexels-photo-7045352.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/7045352/pexels-photo-7045352.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
       "width": 1200,
       "height": 800,
-      "alt": "white bathtub with tap near decorative partition placed near sink and mirrors in stylish light bathroom with glass shower cabin",
+      "alt": "sleek modern bathroom featuring wood paneling and marble accents, with a white basin and bathtub.",
       "photographer": "Max Vakhtbovych",
-      "sourceUrl": "https://www.pexels.com/photo/bathroom-with-partition-and-shower-cabin-7031840/"
+      "sourceUrl": "https://www.pexels.com/photo/an-interior-of-a-modern-bathroom-7045352/"
     },
     {
-      "url": "https://images.pexels.com/photos/35747331/pexels-photo-35747331.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/35747331/pexels-photo-35747331.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "url": "https://images.pexels.com/photos/6587852/pexels-photo-6587852.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/6587852/pexels-photo-6587852.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
       "width": 1200,
       "height": 800,
-      "alt": "clean and stylish bathroom vanity with an illuminated mirror reflecting modern design.",
-      "photographer": "Alley Chien",
-      "sourceUrl": "https://www.pexels.com/photo/modern-bathroom-vanity-with-illuminated-mirror-35747331/"
-    },
-    {
-      "url": "https://images.pexels.com/photos/7005268/pexels-photo-7005268.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
-      "thumbnailUrl": "https://images.pexels.com/photos/7005268/pexels-photo-7005268.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
-      "width": 1200,
-      "height": 800,
-      "alt": "shower cabin with glass walls near mirror hanging on wall above sink in modern minimalist styled bathroom",
+      "alt": "interior of contemporary bathroom with marble walls and comfortable shower cabin under bright light of lamp",
       "photographer": "Max Vakhtbovych",
-      "sourceUrl": "https://www.pexels.com/photo/interior-of-modern-bathroom-with-glass-shower-cabin-7005268/"
+      "sourceUrl": "https://www.pexels.com/photo/bathtub-and-white-sink-with-toilet-in-modern-bathroom-6587852/"
+    },
+    {
+      "url": "https://images.pexels.com/photos/7587484/pexels-photo-7587484.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/7587484/pexels-photo-7587484.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "width": 1200,
+      "height": 800,
+      "alt": "a beautifully designed traditional bathroom featuring luxurious fixtures and classic tiles.",
+      "photographer": "Max Vakhtbovych",
+      "sourceUrl": "https://www.pexels.com/photo/green-and-brown-bathroom-with-white-vanity-and-bathtub-7587484/"
+    },
+    {
+      "url": "https://images.pexels.com/photos/6663038/pexels-photo-6663038.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+      "thumbnailUrl": "https://images.pexels.com/photos/6663038/pexels-photo-6663038.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+      "width": 1200,
+      "height": 800,
+      "alt": "contemporary bathroom design featuring marble walls and modern sink.",
+      "photographer": "Claire  Rendall",
+      "sourceUrl": "https://www.pexels.com/photo/the-interior-of-the-bathroom-of-a-house-6663038/"
     }
   ],
   "land": [

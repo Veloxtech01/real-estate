@@ -32,7 +32,9 @@ import logger from "../utils/logger.js";
  */
 const QUERIES = {
   exterior: ["modern house exterior", "luxury home exterior", "duplex house", "villa house"],
-  interior: ["living room interior", "modern kitchen", "bedroom interior", "bathroom interior"],
+  // "bathroom interior" alone returns public restrooms, which look absurd on a
+  // luxury duplex; "luxury home bathroom" keeps it domestic.
+  interior: ["living room interior", "modern kitchen", "bedroom interior", "luxury home bathroom"],
   land: ["empty land plot", "vacant lot", "land for sale", "cleared field"],
   commercial: ["office building", "retail shop front", "warehouse interior", "office space"],
 };

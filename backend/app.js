@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 
 import healthRoutes from "./routes/healthRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
+import agentRoutes from "./routes/agentRoutes.js";
 import {
   locationRouter,
   taxonomyRouter,
@@ -64,6 +65,7 @@ export function createApp() {
   app.use("/api/properties", propertyRoutes);
   app.use("/api/locations", locationRouter);
   app.use("/api/taxonomy", taxonomyRouter);
+  app.use("/api/agents", agentRoutes);
   app.use("/api/filters", filterRouter);
   app.use("/api/settings", settingsRouter);
 

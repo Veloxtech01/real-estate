@@ -211,6 +211,18 @@ Grouped by category, ready for filter-panel sections:
 
 ---
 
+## `GET /api/agents` · `GET /api/agents/:slug`
+
+Public team roster and per-agent profile/referral pages (§3). `isPublic && isActive`
+only — a private or inactive agent 404s identically to an unknown slug.
+
+- List: `{ "agents": [{ "_id", "name", "slug", "photo", "position", "bio", "phone",
+  "whatsapp", "registrationNumber", "areas": [{ "_id", "name", "slug" }] }] }`.
+- Detail: `{ "agent": { ...same shape } }`.
+- Never exposes `email`, `password`, `role`, `canPublish`, or `lastLoginAt`.
+
+---
+
 ## `GET /api/settings` — site chrome and theme
 
 ```jsonc

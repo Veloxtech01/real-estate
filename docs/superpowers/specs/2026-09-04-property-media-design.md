@@ -246,6 +246,27 @@ abandoned.
 
 ---
 
+## Deviations made during implementation
+
+- **The Pexels API needs a key after all.** The spec said it answers unauthenticated
+  requests, based on two probes that happened to succeed. It does not hold: the keyless
+  quota is a handful of requests, after which every call returns 401 for minutes, so a
+  sixteen-query run cannot complete. `fetchDemoImages.js` now requires `PEXELS_API_KEY`
+  (free, instant) and refuses to run without it. The key is generator-time only — it never
+  reaches the running API, the seed, or the browser.
+- **No chunked or resumable upload path was built.** The transport section described one
+  for files over 20MB. Uploads are capped at 15MB instead, which sits under Cloudinary's
+  20MB single-request limit and removes the need — a `Content-Range` branch that never
+  executes is a branch that is never right. If the cap is ever raised past 20MB, that is
+  when chunking gets written and tested.
+- **`maxFileSize` is advisory, not signed.** Cloudinary's `max_file_size` upload parameter
+  requires an authenticated upload preset, and signing a parameter the endpoint does not
+  accept fails every upload with "Invalid Signature". The browser uses it to reject
+  oversized files before spending a rate-limited signature call; the real byte count is
+  read back from Cloudinary at registration.
+- **`mediaByReference` was removed from `importDemoListings.js`** rather than kept — it
+  carried nothing but the now-unused `images` array.
+
 ## Deferred
 
 - **Watermarking.** §4.2 asks for it and the `eager` slot is wired, but the overlay needs a

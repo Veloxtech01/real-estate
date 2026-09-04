@@ -542,17 +542,182 @@ address.
 
 ---
 
+## Listing media (authenticated)
+
+Five endpoints under `/api/admin/properties/:id/media`. All require a session and apply
+the same §7 ownership rule as the listing endpoints: an agent reaching a colleague's
+listing gets **403, not 404**.
+
+The browser uploads **straight to Cloudinary**, not through this API (scope §10.3 —
+agents upload 8MB phone photos over connections that drop). So the flow is three steps,
+and the middle one does not touch our server:
+
+```
+1. POST .../media/signature   ->  API returns a signature scoped to this listing's folder
+2. POST to Cloudinary          ->  browser uploads directly, with progress
+3. POST .../media              ->  API verifies the asset with Cloudinary, then stores it
+```
+
+### The one rule that matters
+
+**Step 3 believes nothing the client sends except `publicId` and `alt`.** The controller
+calls `cloudinary.api.resource(publicId)` and reads `url`, `width`, `height`, `bytes` and
+`thumbnailUrl` from *Cloudinary's* response. Sending `url` or `width` in the body is not
+an error — they are simply ignored. A client-supplied url would make the record point
+anywhere; client-supplied dimensions would poison the layout-space reservation on every
+page the image appears on.
+
+The folder check runs **before** the Cloudinary lookup, so the endpoint cannot be used to
+probe which public ids exist in the account.
+
+### `POST /api/admin/properties/:id/media/signature`
+
+`strictLimiter` — every call authorises spend. No request body.
+
+```json
+{
+  "success": true,
+  "data": {
+    "timestamp": 1788536823,
+    "signature": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+    "apiKey": "123456789012345",
+    "cloudName": "demo-cloud",
+    "folder": "properties/REF1001",
+    "uploadUrl": "https://api.cloudinary.com/v1_1/demo-cloud/image/upload",
+    "allowedFormats": ["jpg", "jpeg", "png", "webp", "avif"],
+    "maxFileSize": 15728640,
+    "eager": "c_fill,w_400,h_300,q_auto,f_auto"
+  }
+}
+```
+
+**The browser must POST to Cloudinary exactly these fields and no others:** `file`,
+`api_key`, `timestamp`, `signature`, `folder`, `allowed_formats`, `eager`. Cloudinary
+recomputes the signature over what it receives, so one extra or missing field fails the
+upload with "Invalid Signature". Adding a field means changing
+[backend/utils/mediaSignature.js](../backend/utils/mediaSignature.js) **and**
+[frontend/src/lib/uploadMedia.js](../frontend/src/lib/uploadMedia.js) together.
+
+`maxFileSize` is **advisory** — the browser rejects oversized files early to avoid
+spending a rate-limited signature call. It is deliberately *not* signed: Cloudinary's
+`max_file_size` needs an authenticated upload preset, and signing an unsupported
+parameter fails every upload.
+
+### `POST /api/admin/properties/:id/media`
+
+Body: `{ "publicId": "properties/REF1001/kq3xz9pmv1rd8w", "alt": "Front elevation" }` —
+`alt` optional, everything else ignored. Responds **201**.
+
+```json
+{
+  "success": true,
+  "data": {
+    "media": {
+      "_id": "6a9ae7f7c7b32b2a285722f9",
+      "property": "6a9ae7f7c7b32b2a285722f8",
+      "url": "https://res.cloudinary.com/demo-cloud/image/upload/v1757001600/properties/REF1001/kq3xz9pmv1rd8w.jpg",
+      "publicId": "properties/REF1001/kq3xz9pmv1rd8w",
+      "thumbnailUrl": "https://res.cloudinary.com/demo-cloud/image/upload/c_fill,w_400,h_300,q_auto,f_auto/v1757001600/properties/REF1001/kq3xz9pmv1rd8w.jpg",
+      "type": "image",
+      "alt": "Front elevation from the street",
+      "displayOrder": 0,
+      "width": 4032,
+      "height": 3024,
+      "bytes": 2418177,
+      "createdAt": "2026-09-04T15:47:03.349Z",
+      "updatedAt": "2026-09-04T15:47:03.349Z",
+      "__v": 0
+    }
+  }
+}
+```
+
+`displayOrder` is computed server-side as `max + 1`, so a new image lands at the end of
+the gallery. It is never accepted from the body — a client could otherwise reorder by
+uploading.
+
+| Failure | Status |
+| ------------------------------------------------- | ------ |
+| `publicId` missing or empty                       | 400    |
+| `publicId` outside this listing's folder          | 400    |
+| Cloudinary has no such asset                      | 404    |
+| Cloudinary unreachable (SDK detail never surfaced) | 502    |
+| Same `publicId` registered twice (unique index)   | 409    |
+
+### `PATCH /api/admin/properties/:id/media/order`
+
+Body `{ "ids": [...] }`. **Must be a full permutation** of the listing's media — same
+length, same set, no duplicates — or 400. A partial list would leave the omitted rows
+holding stale `displayOrder` values that collide with the rewritten ones, making gallery
+order arbitrary rather than merely wrong.
+
+Responds with the reloaded gallery in its new order, so the client renders the server's
+truth rather than its own guess:
+
+```json
+{
+  "success": true,
+  "data": {
+    "media": [
+      { "_id": "6a9ae7f7c7b32b2a285722fa", "displayOrder": 0, "...": "full media objects" },
+      { "_id": "6a9ae7f7c7b32b2a285722f9", "displayOrder": 1, "...": "full media objects" }
+    ]
+  }
+}
+```
+
+### `PATCH /api/admin/properties/:id/media/:mediaId`
+
+**Alt text only.** `url`, `publicId`, `displayOrder`, `width` and `height` are all
+server-controlled; sending them is ignored, not an error. An empty string is a valid
+clear. Responds `{ success: true, data: { media } }` with the full updated record.
+
+An image belonging to another listing is **404** — the lookup is scoped by property, so
+a `mediaId` alone is not authorisation.
+
+### `DELETE /api/admin/properties/:id/media/:mediaId`
+
+**Permanent, unlike a listing's soft delete.** The Cloudinary asset is destroyed
+(`invalidate: true`, so CDN caches are purged) and the record removed. There is nothing
+to restore.
+
+```json
+{ "success": true, "data": { "deleted": true } }
+```
+
+Two orderings that matter:
+
+- **Cloudinary first, database second.** An orphaned Cloudinary asset bills forever with
+  nothing pointing at it; an orphaned database row is visible and fixable. A genuine SDK
+  failure returns **502 and keeps the record**.
+- `result: "not found"` from Cloudinary is treated as **success**. The asset being
+  already gone is the outcome we wanted; failing would make a half-deleted image
+  permanently undeletable from the UI.
+
+Deleting the listing's cover image **clears `Property.coverImage`** — a dangling
+reference makes `coverImageOf` fall through to the grey placeholder with nothing in the
+UI explaining why. The remaining images are *not* renumbered: `displayOrder` stays
+strictly increasing, which is all the sort needs, and renumbering would race with a
+concurrent reorder.
+
+### When Cloudinary is not configured
+
+Every media endpoint returns **503** with `"Image uploads are not configured"`, and the
+API still boots and serves everything else — same tolerance `config/db.js` has for a
+missing `MONGODB_URI`. The listing editor shows the message inline; the rest of the form
+keeps working.
+
+```json
+{ "success": false, "message": "Image uploads are not configured" }
+```
+
+---
+
 ## Not built yet
 
-No endpoints exist for: staff management, blog posts, pages, testimonials, settings
-updates, or media upload. The **models exist** for all of them — only the routes and
-controllers are missing. Don't build admin UI against these until the endpoints are
-written.
-
-Media upload in particular: there is **no way to add an image to a listing through the
-API**. `PropertyMedia` records only exist for the seeded demo listings. The listing
-editor can therefore choose a cover from what a listing already has, and nothing more —
-anything created since seeding has an empty gallery.
+No endpoints exist for: staff management, blog posts, pages, testimonials, or settings
+updates. The **models exist** for all of them — only the routes and controllers are
+missing. Don't build admin UI against these until the endpoints are written.
 
 The §4.3 **daily enquiry digest** is also unbuilt: it needs a scheduler decision
 (in-process cron vs. a platform cron hitting a protected route) that is really a

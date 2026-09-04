@@ -71,8 +71,8 @@ Two-package repo, MERN-family stack:
 /docs       Reference docs (PROJECT-SCOPE.md = scope, API-REFERENCE.md = endpoints)
 ```
 
-> **Status: public site, lead operations and listings management complete end to end.
-> Media upload and content admin are the open gaps.** Read the "Not built" entry below
+> **Status: public site, lead operations, listings management and media upload complete
+> end to end. Content admin is the open gap.** Read the "Not built" entry below
 > before assuming any feature area exists.
 >
 > - `/frontend` — `create-next-app` scaffold: **Next.js 16.3.4 + React 19.2.8**, App
@@ -105,7 +105,8 @@ Two-package repo, MERN-family stack:
 > - **Seed script written** ([backend/scripts/](backend/scripts/)): `seed.js` (CLI +
 >   exported seeders), `seedData.js` (baseline taxonomy/locations/aliases/pages/
 >   settings), `importDemoListings.js` (maps the root
->   `nigerian_real_estate_dummy_data_200.json` → 200 properties + 600 media). Seeding
+>   `nigerian_real_estate_dummy_data_200.json` → 200 properties + 600 media, illustrated
+>   from the committed Pexels catalogue in `scripts/demoImages.js`). Seeding
 >   is idempotent and never overwrites client-edited page copy. Tested against
 >   mongodb-memory-server and run against the live `realestate_dev` cluster.
 > - **Public API built** — property search/detail/featured, locations, taxonomy,
@@ -122,19 +123,33 @@ Two-package repo, MERN-family stack:
 > - **Frontend public site built** — theme tokens + `config/site.js` rebrand seam,
 >   header/footer, homepage, `/properties` search (SSR, URL-as-state), and
 >   `/property/[slug]` detail with gallery, Leaflet map, enquiry form, JSON-LD,
->   sitemap and robots. 55/55 frontend tests pass.
+>   sitemap and robots.
+> - **Public site restyled to the navy/gold/ivory direction** — alternating light and
+>   dark section grounds, a scrimmed hero with a structured search panel, a stats band
+>   and a testimonials rail on the homepage, and navy header/footer site-wide. The stats
+>   and testimonial copy are **placeholders in `src/content/home.js`** and must be
+>   replaced or removed before a client launch.
 > - **Admin panel shell + lead screens built** — `/admin/login`, the authenticated
 >   shell, a dashboard, and master-detail enquiry inbox and viewing diary at
 >   `/admin/enquiries` and `/admin/viewings`.
 > - **Admin listings management built** — the table at `/admin/properties` (drafts,
 >   soft-deleted rows, feature toggle, delete/restore) and the nine-section editor at
 >   `/admin/properties/new` and `/admin/properties/[id]`, backed by two new endpoints:
->   `GET /api/admin/properties/:id` and `GET /api/admin/reference`. **No photo upload**
->   — the editor picks a cover from a listing's existing media and nothing more.
-> - **Not built:** staff management, blog editor, settings admin, media upload, the
+>   `GET /api/admin/properties/:id` and `GET /api/admin/reference`.
+> - **Media upload built** — signed direct-to-Cloudinary uploads under
+>   `/api/admin/properties/:id/media`, and a gallery manager in the listing editor with
+>   drag *and* keyboard reordering, per-image alt text, cover selection and permanent
+>   delete. Needs `CLOUDINARY_*` in `.env`; without them the endpoints 503 and the rest
+>   of the admin keeps working.
+> - **Demo listings carry real photography** from Pexels, hotlinked from
+>   `images.pexels.com`. The catalogue is committed at
+>   [backend/scripts/demoImages.js](backend/scripts/demoImages.js) and refreshed by hand
+>   with `node scripts/fetchDemoImages.js` (needs `PEXELS_API_KEY`). **Replace with the
+>   agency's own photography before a client launch** — see `frontend/public/CREDITS.md`.
+> - **Not built:** staff management, blog editor, settings admin, the
 >   §4.3 daily digest — plus neighbourhood/agent pages, marketing pages and blog on
 >   the frontend.
-> - 202/202 backend tests and 120/120 frontend tests pass; both packages lint clean.
+> - 255/255 backend tests and 140/140 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -306,6 +321,39 @@ Vite-based sibling project — Next.js needs its own v4 integration.
 - Use `react-hot-toast` for transient notifications (e.g. enquiry submitted, saved).
 - Create a single `<Toaster />` near your app root and call `toast()` from components or hooks.
 
+### Public site look and feel
+
+- **Section tone is the layout's main device, and it is a `Section` prop, not a `bg-`
+  class.** `tone="light" | "raised" | "dark"` sets the ground *and* the heading colours
+  together so a tone can never be half-applied. Pages alternate light and dark bands.
+- **Gold's contrast flips with the ground: 2.2:1 on ivory, 6.6:1 on navy.** That is the
+  whole reason the site alternates — navy is where the accent is allowed to be loud.
+  Gold text on ivory uses `--color-accent-text`; a gold *fill* always carries navy text.
+  Gold with white text (1.9:1) is never permitted.
+- **Every navy region must carry the `on-dark` class.** `globals.css` hangs the
+  light-ground focus ring off it; without it, keyboard focus vanishes inside that region.
+  This is why it appears on the header, hero, dark sections, footer and mobile drawer.
+- **The hero's free-text search and its structured panel are deliberately two controls.**
+  `/properties` treats `q` and the filter params as mutually exclusive — a phrase goes to
+  the natural-language endpoint and the structured filters are ignored — so merging them
+  into one form would silently discard half the visitor's input.
+- **The stats band and testimonials are placeholder content in `src/content/home.js`,
+  flagged as such in that file.** `testimonialModel` exists but has no public endpoint;
+  when one ships, `Testimonials` takes an `items` prop and the content block is deleted.
+  Do not simply rename the placeholders — invented client quotes are a misrepresentation.
+- **Footer and nav links only point at routes that exist.** Unbuilt sections are absent,
+  not stubbed, and there is no newsletter form because there is no subscribe endpoint.
+  The seller CTA (`siteConfig.listPropertyHref`) opens WhatsApp until the §3 page exists.
+- **All demo imagery is placeholder and credited in `frontend/public/CREDITS.md`** —
+  `hero-home.jpg` from Unsplash, and the 600 listing photos hotlinked from Pexels via the
+  committed catalogue at `backend/scripts/demoImages.js`. Every one of them shows a
+  property with nothing to do with the agency, so they must be replaced with the client's
+  own photography before launch. Refresh the catalogue with
+  `node scripts/fetchDemoImages.js` (needs `PEXELS_API_KEY`; the keyless Pexels quota is
+  a handful of requests and then 401s, so a full run cannot complete without a key).
+- **The admin panel is deliberately excluded from this restyle** — it is a different
+  product with its own chrome, and dragging the marketing look into it helps nobody.
+
 ### Admin panel conventions
 
 - **Route groups split the app.** `src/app/(site)/` holds the public pages and mounts
@@ -358,7 +406,33 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   and anything with no matching field goes to a form-level banner verbatim rather than
   being swallowed.
 - **Listing deletion is soft and reversible**, unlike a lead's, which is a permanent NDPA
-  erasure. The confirmation wording has to say which one it is.
+  erasure. The confirmation wording has to say which one it is. **Image deletion is a
+  third case** — it destroys the Cloudinary asset, so it is permanent like a lead's, and
+  `MediaManager`'s dialog says so.
+- **The registration endpoint believes nothing the client sends but `publicId` and `alt`.**
+  The browser uploads straight to Cloudinary, so the API never sees the bytes; it calls
+  `cloudinary.api.resource()` and reads url, dimensions and byte count from *Cloudinary's*
+  answer. A client-supplied url would make the record point anywhere, and client-supplied
+  dimensions would poison the layout-space reservation on every page the image appears on.
+  The folder check runs **before** that lookup, so the endpoint cannot be used to probe
+  which public ids exist in the account.
+- **The signed parameter set is a two-file contract.** Cloudinary recomputes the signature
+  over the parameters it receives, so `buildUploadSignature` in
+  [mediaSignature.js](backend/utils/mediaSignature.js) and the `FormData` in
+  [uploadMedia.js](frontend/src/lib/uploadMedia.js) must list exactly the same fields.
+  Adding one to either alone fails every upload with "Invalid Signature".
+- **Media mutations commit immediately; the cover does not.** Upload, reorder, alt text
+  and delete all fire on the spot and then `refetch()`. A photo is a file on a server, not
+  a form field — tying it to Save means a validation failure elsewhere in a nine-section
+  form silently discards a completed upload. Cover selection stays a react-hook-form value
+  because it is a property of the *listing*. This is why the editor at
+  `/admin/properties/new` cannot upload at all: with no listing id there is no folder and
+  no ownership check, and a temporary folder would orphan billable assets on every
+  abandoned draft.
+- **Uploads cap at 15MB and there is no chunked/resumable path.** 15MB sits under
+  Cloudinary's 20MB single-request limit, so a `Content-Range` branch would never execute
+  — and a branch that never runs is a branch that is never right. Raising the cap past
+  20MB is when chunking gets written, and tested.
 
 ---
 
@@ -516,6 +590,11 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 | POST         | `/api/admin/properties/:id/restore`    | Undo a soft delete                                                                 |
 | POST         | `/api/admin/properties/:id/feature`    | **Administrator only**                                                             |
 | GET          | `/api/admin/reference`                 | Editor vocabulary: enums, rent rules, land-unit factors, areas, taxonomy, staff    |
+| POST         | `/api/admin/properties/:id/media/signature` | Scoped Cloudinary upload signature, `strictLimiter`                          |
+| POST         | `/api/admin/properties/:id/media`      | Register an uploaded asset — body carries `publicId` (+ `alt`) and nothing else    |
+| PATCH        | `/api/admin/properties/:id/media/order` | Reorder; `ids` must be a **full permutation**                                    |
+| PATCH        | `/api/admin/properties/:id/media/:mediaId` | Alt text only                                                                 |
+| DELETE       | `/api/admin/properties/:id/media/:mediaId` | **Permanent** — destroys the Cloudinary asset too                             |
 | GET          | `/api/admin/enquiries`                 | Inbox: `status`, `type`, `source`, `agent`, `property`, `q`, `dateFrom/To`, `sort` |
 | GET          | `/api/admin/enquiries/stats`           | Counts by status — must stay declared before `/:id`                                |
 | GET/PATCH    | `/api/admin/enquiries/:id`             | Detail incl. `notes`; PATCH writes `status`, `notes`, `agent`                      |

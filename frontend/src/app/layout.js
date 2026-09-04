@@ -2,8 +2,6 @@ import { Playfair_Display, Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import siteConfig from "@/config/site";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import { organizationJsonLd } from "@/lib/seo";
 
 /**
@@ -45,10 +43,8 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
         />
-        <Header />
-        {/* Grows to push the footer down on short pages. */}
-        <main className="flex-1">{children}</main>
-        <Footer />
+        {/* Chrome lives in the (site) group, not here — /admin has its own. */}
+        {children}
         {/* Single toast portal for the whole app — components call toast() directly. */}
         <Toaster position="bottom-center" />
       </body>

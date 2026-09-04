@@ -39,6 +39,19 @@ apiClient.interceptors.response.use(
     const normalised = new Error(payload?.message || fallback);
     normalised.status = status;
     normalised.details = payload?.details ?? null;
+
+    // A 401 means the session is gone — expired, signed out elsewhere, or the account
+    // was deactivated (requireAuth re-checks it every request). Handled once here so no
+    // call site needs its own redirect. Guarded against the login page itself, where a
+    // 401 is just a wrong password and must render as a form error.
+    if (
+      status === 401 &&
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/admin/login")
+    ) {
+      window.location.href = "/admin/login";
+    }
+
     return Promise.reject(normalised);
   },
 );

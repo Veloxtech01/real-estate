@@ -10,6 +10,7 @@ import {
   featureProperty,
 } from "../controllers/adminPropertyController.js";
 import { requireAuth, authorizeRole } from "../middleware/auth.js";
+import adminMediaRoutes from "./adminMediaRoutes.js";
 
 /**
  * Admin listing routes, mounted at /api/admin/properties.
@@ -30,6 +31,10 @@ router.get("/:id", getAdminProperty);
 router.patch("/:id", updateProperty);
 router.delete("/:id", softDeleteProperty);
 router.post("/:id/restore", restoreProperty);
+
+// The listing gallery. A nested router rather than five routes here, so the media
+// paths stay in one file and inherit this router's requireAuth.
+router.use("/:id/media", adminMediaRoutes);
 
 // Homepage placement is an editorial decision, so administrators only — an agent
 // should not be able to promote their own listing to the homepage.

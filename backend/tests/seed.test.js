@@ -166,6 +166,45 @@ describe("Demo listing import", () => {
     expect(gallery).toHaveLength(3);
   });
 
+  it("gives every demo listing real photography, not grey placeholders", async () => {
+    await seedBaseline({ adminPassword: "seed-password" });
+    await importDemoListings({ filePath: DEMO_FILE, demoPassword: "demo-password" });
+
+    const media = await PropertyMedia.find({}).lean();
+
+    expect(media.length).toBeGreaterThan(0);
+
+    for (const item of media) {
+      // placehold.co stubs were the whole reason the demo site looked unfinished.
+      expect(item.url).not.toContain("placehold.co");
+      expect(item.url).toMatch(/^https:\/\/images\.pexels\.com\/photos\//);
+      // Real dimensions, so next/image reserves the right space and the grid does
+      // not reflow as photos arrive.
+      expect(item.width).toBe(1200);
+      expect(item.height).toBe(800);
+      expect(item.thumbnailUrl).toContain("w=400");
+      expect(item.alt).toMatch(/ — /);
+    }
+  });
+
+  it("never repeats a photo within one listing's gallery", async () => {
+    await seedBaseline({ adminPassword: "seed-password" });
+    await importDemoListings({ filePath: DEMO_FILE, demoPassword: "demo-password" });
+
+    const media = await PropertyMedia.find({}).lean();
+    const byProperty = new Map();
+
+    for (const item of media) {
+      const key = String(item.property);
+      if (!byProperty.has(key)) byProperty.set(key, []);
+      byProperty.get(key).push(item.url);
+    }
+
+    for (const [property, urls] of byProperty) {
+      expect(new Set(urls).size, property).toBe(urls.length);
+    }
+  });
+
   it("converts land sizes to square metres and maps features to taxonomy", async () => {
     await seedBaseline({ adminPassword: "seed-password" });
     await importDemoListings({ filePath: DEMO_FILE, demoPassword: "demo-password" });

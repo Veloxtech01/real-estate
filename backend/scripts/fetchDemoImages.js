@@ -4,6 +4,8 @@ import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import logger from "../utils/logger.js";
+
 /**
  * Regenerates the demo image catalogue at scripts/demoImages.js.
  *
@@ -102,7 +104,7 @@ async function fetchWithRetry(url, init = {}, attempts = 7, pace = PACE_MS) {
     await sleep(Math.max(pace, 300) * 2 ** attempt);
   }
 
-  console.warn(`  ! gave up on ${url} — ${lastReason}`);
+  logger.warn(`  ! gave up on ${url} — ${lastReason}`);
   return null;
 }
 
@@ -123,7 +125,7 @@ async function search(query) {
   });
 
   if (!response?.ok) {
-    console.warn(`  ! "${query}" returned nothing usable`);
+    logger.warn(`  ! "${query}" returned nothing usable`);
     return [];
   }
 
@@ -191,10 +193,10 @@ async function collect(category, queries) {
       });
     }
 
-    console.log(`  ${query}: +${checked.filter((c) => c.live).length}`);
+    logger.info(`  ${query}: +${checked.filter((c) => c.live).length}`);
   }
 
-  console.log(`${category}: kept ${seen.size}, rejected ${rejected}`);
+  logger.info(`${category}: kept ${seen.size}, rejected ${rejected}`);
   return [...seen.values()];
 }
 
@@ -225,7 +227,7 @@ export const DEMO_IMAGES = ${JSON.stringify(catalogue, null, 2)};
 `;
 
   await writeFile(target, body, "utf8");
-  console.log(`\nWrote ${target}`);
+  logger.info(`\nWrote ${target}`);
 }
 
 /**
@@ -237,7 +239,7 @@ export const DEMO_IMAGES = ${JSON.stringify(catalogue, null, 2)};
  */
 async function main() {
   if (!process.env.PEXELS_API_KEY) {
-    console.error(
+    logger.error(
       [
         "PEXELS_API_KEY is not set.",
         "Get a free key at https://www.pexels.com/api/ and add it to backend/.env.",
@@ -258,7 +260,7 @@ async function main() {
   );
 
   if (thin.length > 0) {
-    console.error(
+    logger.error(
       `\nToo few photos in: ${thin
         .map(([category, items]) => `${category} (${items.length}/${MIN_PER_CATEGORY})`)
         .join(", ")}\nAdd or broaden the queries and re-run — a thin category repeats.`

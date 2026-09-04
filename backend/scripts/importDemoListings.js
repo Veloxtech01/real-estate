@@ -8,6 +8,7 @@ import Taxonomy from "../model/taxonomyModel.js";
 import logger from "../utils/logger.js";
 import { toSquareMetres } from "../utils/constants.js";
 import { slugify, propertySlug } from "../utils/slugify.js";
+import { galleryFor } from "./demoGallery.js";
 
 /**
  * Imports the sample Nigerian listings JSON into the property collection.
@@ -149,7 +150,6 @@ export async function importDemoListings({ filePath, staffCount = 8, demoPasswor
   const taxonomyByKey = new Map(taxonomy.map((t) => [t.key, t._id]));
 
   const properties = [];
-  const mediaByReference = new Map();
   let skipped = 0;
 
   for (const record of records) {
@@ -225,7 +225,6 @@ export async function importDemoListings({ filePath, staffCount = 8, demoPasswor
     }
 
     properties.push(property);
-    mediaByReference.set(reference, record.images ?? []);
   }
 
   // insertMany is safe here: Property has no save hooks that matter for already-
@@ -233,19 +232,33 @@ export async function importDemoListings({ filePath, staffCount = 8, demoPasswor
   const created = await Property.insertMany(properties, { ordered: false });
 
   // Build the gallery documents, then point each property at its cover image.
+  //
+  // Photos come from the committed Pexels catalogue rather than the source JSON,
+  // whose `images` field is a set of grey placehold.co stubs — real photography is
+  // the whole visual impression the demo site makes. The selection is seeded by the
+  // listing reference, so re-seeding reproduces the same gallery and the diff stays
+  // readable.
   const mediaDocs = [];
   for (const property of created) {
-    const images = mediaByReference.get(property.reference) ?? [];
+    const gallery = galleryFor(property.reference, property.propertyType, property.title);
 
-    images.forEach((url, index) => {
+    gallery.forEach((image, index) => {
       mediaDocs.push({
         property: property._id,
-        url,
-        // Placeholder ids — real uploads get these from Cloudinary (§10.1).
+        url: image.url,
+        // Placeholder ids — real uploads get these from Cloudinary (§10.1). Keeping
+        // the "demo/" prefix is what lets a real asset be told from a seeded one.
         publicId: `demo/${property.reference}/${index + 1}`,
-        thumbnailUrl: url,
+        // The catalogue's own smaller variant, not a copy of the full-size url —
+        // pointing both at the same file defeats the point of a thumbnail.
+        thumbnailUrl: image.thumbnailUrl,
         type: "image",
-        alt: `${property.title} — image ${index + 1}`,
+        // Composed in demoGallery.js, not re-derived here, so the two cannot drift.
+        alt: image.alt,
+        // Real dimensions, so next/image reserves the right space and the results
+        // grid does not reflow as photos arrive.
+        width: image.width,
+        height: image.height,
         displayOrder: index,
       });
     });

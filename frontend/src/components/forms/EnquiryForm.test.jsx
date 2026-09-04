@@ -87,4 +87,27 @@ describe("EnquiryForm", () => {
 
     expect(await screen.findByText(/enter a valid nigerian phone number/i)).toBeInTheDocument();
   });
+
+  it("renders a custom heading and starts with an empty message when there is no property", () => {
+    render(<EnquiryForm type="general" source="contact_page" heading="Send us a message" />);
+    expect(screen.getByRole("heading", { name: "Send us a message" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/message/i)).toHaveValue("");
+  });
+
+  it("omits the property field and uses the passed type/source when no property is given", async () => {
+    const user = userEvent.setup();
+    submitEnquiry.mockResolvedValue({ id: "1" });
+    render(<EnquiryForm type="general" source="contact_page" heading="Send us a message" />);
+
+    await user.type(screen.getByLabelText(/your name/i), "Chidi Nwosu");
+    await user.type(screen.getByLabelText(/phone/i), "+2348012345678");
+    await user.click(screen.getByLabelText(/happy for us to contact you/i));
+    await user.click(screen.getByRole("button", { name: /send enquiry/i }));
+
+    await waitFor(() => expect(submitEnquiry).toHaveBeenCalledTimes(1));
+    const payload = submitEnquiry.mock.calls[0][0];
+    expect(payload.type).toBe("general");
+    expect(payload.source).toBe("contact_page");
+    expect(payload).not.toHaveProperty("property");
+  });
 });

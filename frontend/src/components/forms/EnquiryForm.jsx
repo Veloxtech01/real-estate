@@ -7,14 +7,24 @@ import FieldError from "@/components/forms/FieldError";
 import { submitEnquiry } from "@/lib/api/client";
 
 /**
- * Lead capture for a single listing — the conversion point of the entire site.
+ * Lead capture — the conversion point of the entire site.
  *
  * Phone is required and email is not: phone is the primary contact channel in this
  * market. Contact consent is captured explicitly and marketing opt-in is a separate
  * checkbox, because agreeing to a callback is not agreeing to alerts (NDPA 2023,
  * scope §11).
+ *
+ * `property` is optional so the same form serves the property-detail page (defaults
+ * below reproduce its exact prior behaviour) and a property-less enquiry like the
+ * contact page, which passes `type="general"` and `source="contact_page"` instead.
  */
-export default function EnquiryForm({ property }) {
+export default function EnquiryForm({
+  property,
+  type = "property_enquiry",
+  source = "property_page",
+  heading = "Enquire about this property",
+  subheading = "We usually reply the same working day.",
+}) {
   const {
     register,
     handleSubmit,
@@ -26,7 +36,9 @@ export default function EnquiryForm({ property }) {
       name: "",
       phone: "",
       email: "",
-      message: `I'd like more information about ${property.reference}.`,
+      // Only a property-page enquiry gets a pre-filled reference; a general
+      // enquiry starts blank rather than referencing a listing that doesn't exist.
+      message: property ? `I'd like more information about ${property.reference}.` : "",
       consentGiven: false,
       marketingOptIn: false,
     },
@@ -36,10 +48,10 @@ export default function EnquiryForm({ property }) {
     try {
       await submitEnquiry({
         ...values,
-        // The API resolves either a slug or an id; the slug is what we have here.
-        property: property.slug,
-        type: "property_enquiry",
-        source: "property_page",
+        // The API resolves either a slug or an id; only sent when there is one.
+        ...(property ? { property: property.slug } : {}),
+        type,
+        source,
       });
       toast.success("Thanks — we'll be in touch shortly.");
       reset();
@@ -62,8 +74,8 @@ export default function EnquiryForm({ property }) {
       className="rounded-lg border border-border bg-surface-raised p-6"
       noValidate
     >
-      <h2 className="text-xl text-ink">Enquire about this property</h2>
-      <p className="mt-1 text-sm text-muted">We usually reply the same working day.</p>
+      <h2 className="text-xl text-ink">{heading}</h2>
+      <p className="mt-1 text-sm text-muted">{subheading}</p>
 
       <div className="mt-6 space-y-4">
         {/* Name */}

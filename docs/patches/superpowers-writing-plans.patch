@@ -1,0 +1,101 @@
+--- /tmp/writing-plans.orig.md	2026-09-04 10:22:26.314020800 +0100
++++ C:/Users/gmbe1/.claude/plugins/cache/superpowers-dev/superpowers/6.1.1/skills/writing-plans/SKILL.md	2026-09-04 10:24:14.512099100 +0100
+@@ -7,10 +7,16 @@
+ 
+ ## Overview
+ 
+-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
++Write implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to decide correctly: which files to touch for each task, the interfaces between tasks, the invariants that are not obvious from the code, the tests, and how to verify. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+ 
+ Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+ 
++**They can write the code. They cannot infer the constraints.** Spend the plan on what
++they cannot recover from the repo — decisions and their reasoning, cross-task interfaces,
++domain invariants, failure semantics — and on the tests, which are the executable
++specification. A plan that pre-types every function body is long without being more
++precise, and it goes stale the moment implementation deviates.
++
+ **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+ 
+ **Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
+@@ -107,10 +113,14 @@
+ 
+ - [ ] **Step 3: Write minimal implementation**
+ 
+-```python
+-def function(input):
+-    return expected
+-```
++`src/path/file.py` — `function(input: str) -> Result | None`
++
++Responsibility: look up the input and return the matching Result.
++
++Constraints:
++- Unparseable input returns None rather than raising — callers treat absence as a
++  normal answer, not an error.
++- Reuse `existing_helper()` rather than re-deriving the lookup.
+ 
+ - [ ] **Step 4: Run test to verify it passes**
+ 
+@@ -125,19 +135,41 @@
+ ```
+ ````
+ 
+-## No Placeholders
++## What Each Step Contains
++
++Precision is about **what and why**, not about pre-typing the implementation. A step
++carries exactly these parts:
++
++| Step kind | Contains |
++| --- | --- |
++| **Test step** | The complete test code, verbatim and runnable. Tests are the executable specification — this is where literal code earns its cost |
++| **Implementation step** | Target file and the exact signature · one line of responsibility · the constraints that are not obvious from the signature (invariants, error semantics, which existing helper to reuse, what must NOT happen) |
++| **Command step** | The exact command and its expected output |
++| **Interfaces block** | Exact names, parameters and return types crossing task boundaries |
++
++**The implementation step is a contract, not a transcript.** State what the code must be
++true of; let the implementer write the body against the failing test.
++
++Two exceptions where the literal body still belongs in the plan:
++
++- **Config and schema** — a Tailwind theme block, a CI matrix, a migration. There is no
++  test driving these, so the exact content is the specification.
++- **A snippet whose precise form is the point** — a regex, a security header, a
++  transition table. Write it out; paraphrasing it loses the thing that matters.
++
++### Still plan failures
+ 
+-Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
+ - "TBD", "TODO", "implement later", "fill in details"
+-- "Add appropriate error handling" / "add validation" / "handle edge cases"
+-- "Write tests for the above" (without actual test code)
+-- "Similar to Task N" (repeat the code — the engineer may be reading tasks out of order)
+-- Steps that describe what to do without showing how (code blocks required for code steps)
+-- References to types, functions, or methods not defined in any task
++- "Add appropriate error handling" / "add validation" / "handle edge cases" — name the
++  actual error cases and what each one does
++- "Write tests for the above" without the test code
++- "Similar to Task N" — restate it; the implementer may read tasks out of order
++- References to types, functions or methods no task defines
++- A signature or file path left approximate
+ 
+ ## Remember
+-- Exact file paths always
+-- Complete code in every step — if a step changes code, show the code
++- Exact file paths and signatures always
++- Test code verbatim; implementations as contracts
+ - Exact commands with expected output
+ - DRY, YAGNI, TDD, frequent commits
+ 
+@@ -147,7 +179,9 @@
+ 
+ **1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
+ 
+-**2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
++**2. Placeholder scan:** Search your plan for red flags — any of the patterns under "Still plan failures" above. Fix them.
++
++**2b. Shape check:** Does each step carry the parts listed in "What Each Step Contains"? The common misses are an implementation step with a responsibility but no constraints, and a test step that describes the cases instead of containing the test code.
+ 
+ **3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+ 

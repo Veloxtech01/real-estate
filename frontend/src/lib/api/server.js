@@ -118,3 +118,16 @@ export function getSettings() {
 export function naturalSearch({ q, page = 1, limit = 12, sort = "newest" }) {
   return request("/search", { body: { q, page, limit, sort } });
 }
+
+/** Public team roster (§3). */
+export function getAgents() {
+  return request("/agents", { revalidate: 3600, tags: ["agents"] });
+}
+
+/** One agent's public profile, by slug. Null on 404 (private, inactive, or unknown). */
+export function getAgent(slug) {
+  return request(`/agents/${encodeURIComponent(slug)}`, {
+    revalidate: 3600,
+    tags: ["agents", `agent:${slug}`],
+  });
+}

@@ -12,6 +12,7 @@ Commercial purpose is **lead generation**: a prospect finds a property via on-si
 search or Google, then contacts the agency.
 
 **Project docs:**
+
 - [docs/PROJECT-SCOPE.md](docs/PROJECT-SCOPE.md) — full product scope. Read before
   working on any feature area.
 - [docs/API-REFERENCE.md](docs/API-REFERENCE.md) — built endpoints' real response
@@ -23,22 +24,22 @@ search or Google, then contacts the agency.
 wrong and will trust it. These files are the only memory across sessions, so updating
 them is part of finishing a change, not a follow-up task.
 
-| When you… | Update |
-| --- | --- |
-| Add/change/remove an endpoint, or change a response shape | [docs/API-REFERENCE.md](docs/API-REFERENCE.md) — **and its "Not built yet" list** |
-| Finish or start a build phase (models, routes, a page, admin section) | The **Status** block below |
-| Discover an invariant, gotcha or non-obvious constraint | The relevant conventions section below — write down the *why* |
-| Deviate from the scope doc | A note in [docs/PROJECT-SCOPE.md](docs/PROJECT-SCOPE.md) at that section, saying it's deliberate |
-| Add an env var | `backend/.env.example` (and `.env` locally) |
-| Add a dependency | Flag it to the user first, then the stack table below |
-| Change tooling, versions, or a command | The stack table and **Commands** below |
+| When you…                                                             | Update                                                                                           |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Add/change/remove an endpoint, or change a response shape             | [docs/API-REFERENCE.md](docs/API-REFERENCE.md) — **and its "Not built yet" list**                |
+| Finish or start a build phase (models, routes, a page, admin section) | The **Status** block below                                                                       |
+| Discover an invariant, gotcha or non-obvious constraint               | The relevant conventions section below — write down the _why_                                    |
+| Deviate from the scope doc                                            | A note in [docs/PROJECT-SCOPE.md](docs/PROJECT-SCOPE.md) at that section, saying it's deliberate |
+| Add an env var                                                        | `backend/.env.example` (and `.env` locally)                                                      |
+| Add a dependency                                                      | Flag it to the user first, then the stack table below                                            |
+| Change tooling, versions, or a command                                | The stack table and **Commands** below                                                           |
 
 Two rules that keep this honest:
 
 1. **Response shapes get captured from a running API, never written from memory.** The
    `price`-is-truthy-on-rentals trap in the API reference was only found by inspecting
    real responses — it is invisible in the schema.
-2. **Say what is *not* built as carefully as what is.** Most of the wasted effort a
+2. **Say what is _not_ built as carefully as what is.** Most of the wasted effort a
    fresh session can incur comes from assuming an endpoint exists because a model does.
 
 Scope highlights:
@@ -66,11 +67,13 @@ Two-package repo, MERN-family stack:
 
 ```
 /frontend   Next.js (React 19) client — SSR on listing/search pages
-/backend    Express 5 + Node API, Mongoose models (MongoDB) — not being built yet
-/docs       Reference docs (PROJECT-SCOPE.md = full product scope)
+/backend    Express 5 + Node API, Mongoose models (MongoDB)
+/docs       Reference docs (PROJECT-SCOPE.md = scope, API-REFERENCE.md = endpoints)
 ```
 
-> **Status: scaffold plumbing done on both packages; no product features built yet.**
+> **Status: public site and lead operations complete end to end. Listings management
+> and content admin are the open gaps.** Read the "Not built" entry below before
+> assuming any feature area exists.
 >
 > - `/frontend` — `create-next-app` scaffold: **Next.js 16.3.4 + React 19.2.8**, App
 >   Router, `src/` dir, `@/*` import alias, Tailwind v4 via `@tailwindcss/postcss`.
@@ -80,16 +83,17 @@ Two-package repo, MERN-family stack:
 >   `react-leaflet` for the property map). Test harness wired up
 >   ([frontend/vitest.config.mjs](frontend/vitest.config.mjs) +
 >   [frontend/vitest.setup.js](frontend/vitest.setup.js)).
->   Public site built (see the status list below); **no admin panel and no auth
->   yet** — the frontend makes no authenticated calls.
-> - `/backend` — runnable API skeleton, **zero domain logic**:
+>   Public site and admin panel both built — see the status list below.
+> - `/backend` — Express app with the public API, staff auth, admin listing CRUD,
+>   lead operations and AI search:
 >   [index.js](backend/index.js) (boot + graceful shutdown),
 >   [app.js](backend/app.js) (`createApp()`, CORS, parsers, `/api` rate limit),
 >   [config/db.js](backend/config/db.js), [utils/logger.js](backend/utils/logger.js),
 >   [utils/ApiError.js](backend/utils/ApiError.js),
 >   [middleware/errorHandler.js](backend/middleware/errorHandler.js),
->   [middleware/rateLimiter.js](backend/middleware/rateLimiter.js), and a single
->   `GET /api/health` route. Verified: server boots, health returns 200, eslint clean.
+>   [middleware/rateLimiter.js](backend/middleware/rateLimiter.js),
+>   [middleware/auth.js](backend/middleware/auth.js) (session + ownership scoping),
+>   and routes/controllers per resource. See the endpoint tables below.
 > - **Data model — all Phase 1 collections written** ([backend/model/](backend/model/)):
 >   `propertyModel`, `propertyMediaModel`, `agentModel`, `locationModel`,
 >   `locationAliasModel`, `taxonomyModel`, `enquiryModel`, `viewingModel`,
@@ -103,7 +107,7 @@ Two-package repo, MERN-family stack:
 >   settings), `importDemoListings.js` (maps the root
 >   `nigerian_real_estate_dummy_data_200.json` → 200 properties + 600 media). Seeding
 >   is idempotent and never overwrites client-edited page copy. Tested against
->   mongodb-memory-server, **not yet against a real cluster** (there isn't one).
+>   mongodb-memory-server and run against the live `realestate_dev` cluster.
 > - **Public API built** — property search/detail/featured, locations, taxonomy,
 >   filter options, public settings, plus enquiry and viewing submission.
 > - **Staff auth + admin listing CRUD built** — cookie JWT login, `/api/auth/*`, and
@@ -137,9 +141,8 @@ Two-package repo, MERN-family stack:
 > before writing any Next.js code** — don't rely on recalled Next 13/14/15 patterns.
 > `frontend/CLAUDE.md` exists solely to import that file; leave both in place.
 
-> **Note:** `create-next-app` initialized a git repo at `frontend/.git`. The project root
-> is not a git repo, so this is currently a nested repo covering only the frontend —
-> flag/resolve before any versioning work.
+> **Note:** the nested `frontend/.git` that `create-next-app` created has been removed.
+> The project root is the single git repo, and work happens directly on `main`.
 
 ### Stack decision: Next.js + MongoDB (deviates from the scope doc's own recommendation)
 
@@ -155,22 +158,22 @@ file wins**; the scope doc's product requirements otherwise still apply.
 
 ## Tech stack (frontend — intended)
 
-| Concern   | Library                               | Notes that matter                                          |
-| --------- | ------------------------------------- | ---------------------------------------------------------- |
-| Framework | `next` 16.3.4 (App Router)            | **SSR/SSG required on listing & search pages** — a product requirement (SEO/lead-gen), not a preference. **Next 16 ≠ your training data — read `frontend/node_modules/next/dist/docs/` first** (see warning above) |
-| Lint      | `oxlint` 1                            | Carried over from prior scaffold convention — no config file yet; confirm it covers Next.js file conventions (route handlers, `app/` dir) before relying on it |
-| UI        | `react` / `react-dom` 19.2            | New JSX transform — no `import React` needed for JSX       |
-| Styling   | `tailwindcss` 4 + `@tailwindcss/postcss` | **v4 — CSS-first config, NOT v3.** Wired via `frontend/postcss.config.mjs` (not Vite's `@tailwindcss/vite`). Theme customization goes in CSS via `@theme` in `frontend/src/app/globals.css`; no `tailwind.config.js` |
-| Routing   | Next.js file-based routing (`src/app/`) | Replaces `react-router-dom` — don't reintroduce React Router. Import alias is `@/*` → `src/*` (`frontend/jsconfig.json`) |
-| HTTP      | `axios` 1                             | Use one shared instance (see below)                        |
-| Forms     | `react-hook-form` 7                   | Uncontrolled-first; prefer over manual `useState` forms    |
-| Icons     | `react-icons` 5                       | Import per-icon from the specific set                      |
-| Tooltips  | `react-tooltip` 6                     | Confirm current API (`data-tooltip-id` etc.) against installed version before first use |
-| Toasts    | `react-hot-toast` (preferred)         | Use `react-hot-toast` for toasts; do not add `react-toastify` |
-| Animation | `motion` (Framer Motion)              | **Default animation library** — use for all animations     |
-| Charts    | `recharts` 3                          | Default chart library — add when a chart is actually needed (e.g. admin search analytics, §5.7 of the scope doc) |
-| Maps      | Mapbox or Leaflet + OpenStreetMap     | Per scope doc §10 — avoid Google Maps' dollar-denominated per-view billing |
-| Tests     | `vitest` 4 + Testing Library + jsdom  | Config is [frontend/vitest.config.mjs](frontend/vitest.config.mjs) — **`.mjs`, not `.js`**, because this package isn't `"type": "module"` and Vite's native config loader warns otherwise. Vitest does not run the Next.js compiler, so server components/routing/SSR aren't covered by these tests |
+| Concern   | Library                                  | Notes that matter                                                                                                                                                                                                                                                                                   |
+| --------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework | `next` 16.3.4 (App Router)               | **SSR/SSG required on listing & search pages** — a product requirement (SEO/lead-gen), not a preference. **Next 16 ≠ your training data — read `frontend/node_modules/next/dist/docs/` first** (see warning above)                                                                                  |
+| Lint      | `oxlint` 1                               | Carried over from prior scaffold convention — no config file yet; confirm it covers Next.js file conventions (route handlers, `app/` dir) before relying on it                                                                                                                                      |
+| UI        | `react` / `react-dom` 19.2               | New JSX transform — no `import React` needed for JSX                                                                                                                                                                                                                                                |
+| Styling   | `tailwindcss` 4 + `@tailwindcss/postcss` | **v4 — CSS-first config, NOT v3.** Wired via `frontend/postcss.config.mjs` (not Vite's `@tailwindcss/vite`). Theme customization goes in CSS via `@theme` in `frontend/src/app/globals.css`; no `tailwind.config.js`                                                                                |
+| Routing   | Next.js file-based routing (`src/app/`)  | Replaces `react-router-dom` — don't reintroduce React Router. Import alias is `@/*` → `src/*` (`frontend/jsconfig.json`)                                                                                                                                                                            |
+| HTTP      | `axios` 1                                | Use one shared instance (see below)                                                                                                                                                                                                                                                                 |
+| Forms     | `react-hook-form` 7                      | Uncontrolled-first; prefer over manual `useState` forms                                                                                                                                                                                                                                             |
+| Icons     | `react-icons` 5                          | Import per-icon from the specific set                                                                                                                                                                                                                                                               |
+| Tooltips  | `react-tooltip` 6                        | Confirm current API (`data-tooltip-id` etc.) against installed version before first use                                                                                                                                                                                                             |
+| Toasts    | `react-hot-toast` (preferred)            | Use `react-hot-toast` for toasts; do not add `react-toastify`                                                                                                                                                                                                                                       |
+| Animation | `motion` (Framer Motion)                 | **Default animation library** — use for all animations                                                                                                                                                                                                                                              |
+| Charts    | `recharts` 3                             | Default chart library — add when a chart is actually needed (e.g. admin search analytics, §5.7 of the scope doc)                                                                                                                                                                                    |
+| Maps      | Mapbox or Leaflet + OpenStreetMap        | Per scope doc §10 — avoid Google Maps' dollar-denominated per-view billing                                                                                                                                                                                                                          |
+| Tests     | `vitest` 4 + Testing Library + jsdom     | Config is [frontend/vitest.config.mjs](frontend/vitest.config.mjs) — **`.mjs`, not `.js`**, because this package isn't `"type": "module"` and Vite's native config loader warns otherwise. Vitest does not run the Next.js compiler, so server components/routing/SSR aren't covered by these tests |
 
 > **If `react-router-dom` was previously pinned for security reasons in a sibling
 > project's CLAUDE.md, that note does not apply here** — this project uses Next.js
@@ -190,6 +193,7 @@ Tests: `vitest` + `supertest` + `mongodb-memory-server`, config in `backend/vite
 Domain-specific backend needs from the scope doc to keep in mind when this phase
 starts (not exhaustive — re-read [docs/PROJECT-SCOPE.md §5](docs/PROJECT-SCOPE.md#5-ai-natural-language-search)
 and [§8](docs/PROJECT-SCOPE.md#8-data-model) before building):
+
 - A small/fast LLM call (with response caching, a strict JSON-only schema, and a hard
   monthly spend cap + fallback flag) for the natural-language search filter extraction —
   not a general chat/content-generation integration.
@@ -261,13 +265,17 @@ Vite-based sibling project — Next.js needs its own v4 integration.
 
 ### Data fetching (Axios)
 
-> **Not needed yet.** There's no backend/API right now, so don't wire up
-> real requests — this pattern is for when `/backend` exists.
+> **Two clients, deliberately.** Server Components read through
+> [frontend/src/lib/api/server.js](frontend/src/lib/api/server.js) using `fetch` — Next's
+> cache is fetch-based and Axios bypasses it entirely. The browser writes through the
+> Axios instance below. Don't collapse them into one.
 
-- Use a **single shared Axios instance** at
-  [frontend/src/api/axiosApi.js](frontend/src/api/axiosApi.js) (or the Next.js-appropriate
-  equivalent path once scaffolded) — never bare `axios.get(...)` at call sites. Configure
-  it with `withCredentials: true` (cookie auth) and a JSON `Content-Type`.
+- Use the **single shared Axios instance** at
+  [frontend/src/lib/api/client.js](frontend/src/lib/api/client.js) — never bare
+  `axios.get(...)` at call sites. It is already configured with `withCredentials: true`
+  (cookie auth) and a JSON `Content-Type`. Admin calls go through the wrappers in
+  [frontend/src/lib/api/admin.js](frontend/src/lib/api/admin.js), which is the only
+  place admin URLs are written.
 - Put auth headers, error normalization, and 401 handling in **interceptors**,
   not in every call site.
 - The base URL comes from an env var (`NEXT_PUBLIC_`-prefixed for anything the browser
@@ -306,7 +314,7 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   "fix" the inconsistency.
 - **Auth is three layers, and only the third is real.**
   1. `src/proxy.js` — Next 16 renamed Middleware to **Proxy**. It checks cookie
-     *presence* only, to avoid flashing empty chrome. It is an **optimistic check, never
+     _presence_ only, to avoid flashing empty chrome. It is an **optimistic check, never
      authorization** — the signing key is the backend's.
   2. `AdminSessionProvider` calls `/api/auth/me` once and renders **nothing** until it
      resolves, so screens can read `user.role` unconditionally.
@@ -319,7 +327,7 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   purpose: a wrong optimistic state on a lead is worse than a short wait.
 - All admin URLs live in `src/lib/api/admin.js`. Never build one at a call site.
 - **`src/lib/viewingTransitions.js` mirrors the backend table with one-way authority:**
-  it decides which *buttons render*; the backend decides what is *allowed*. On a drift the
+  it decides which _buttons render_; the backend decides what is _allowed_. On a drift the
   API's 400 is shown verbatim. Never invert this by trusting the frontend copy.
 - **Role-gated controls are courtesy, not security.** The API enforces permissions
   regardless of what renders. Hiding Delete from an agent is a nicety; the 403 is the rule.
@@ -329,13 +337,12 @@ Vite-based sibling project — Next.js needs its own v4 integration.
 
 ---
 
-## Backend conventions (Express/Node) — future phase, not built yet
+## Backend conventions (Express/Node)
 
-> No `/backend` work is in scope right now — no resources/models have been
-> decided yet beyond what's implied by the scope doc's data model (§8). This section
-> documents *structure and style* to follow whenever backend work starts.
+> These are the established patterns, not aspirations — the models, routes and
+> controllers below all exist. Match them rather than introducing a new shape.
 
-Target layout under `/backend`:
+Layout under `/backend`:
 
 ```
 index.js        server entry (starts HTTP server)
@@ -417,24 +424,24 @@ tests/          vitest + supertest + mongodb-memory-server
 > the worst of which is that `price` is truthy even on rentals, so `if (property.price)`
 > is always wrong.
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| GET | `/api/health` | Liveness + DB connection state |
-| GET | `/api/properties` | Search: `listingType`, `propertyType`, `location`, `state`, `bedroomsMin/Max`, `bathroomsMin`, `priceMin/Max`, `amenities`, `titleType`, `isFeatured`, `q`, `sort`, `page`, `limit` |
-| GET | `/api/properties/featured` | Homepage rail — must stay declared before `/:slug` |
-| GET | `/api/properties/:slug` | Detail + gallery + related listings |
-| GET | `/api/locations` · `/api/locations/:slug` | Area pages; detail includes available listing count |
-| GET | `/api/taxonomy` | Grouped by category for the filter panel |
-| GET | `/api/filters` | One call for all filter controls, incl. real price bounds |
-| GET | `/api/settings` | Curated public projection — never the AI spend cap or analytics ids |
-| POST | `/api/enquiries` | Lead capture, `strictLimiter` |
-| POST | `/api/viewings` | Viewing request, `strictLimiter` |
-| POST | `/api/search` | Natural-language search (§5), `strictLimiter` |
+| Method | Path                                      | Notes                                                                                                                                                                               |
+| ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/health`                             | Liveness + DB connection state                                                                                                                                                      |
+| GET    | `/api/properties`                         | Search: `listingType`, `propertyType`, `location`, `state`, `bedroomsMin/Max`, `bathroomsMin`, `priceMin/Max`, `amenities`, `titleType`, `isFeatured`, `q`, `sort`, `page`, `limit` |
+| GET    | `/api/properties/featured`                | Homepage rail — must stay declared before `/:slug`                                                                                                                                  |
+| GET    | `/api/properties/:slug`                   | Detail + gallery + related listings                                                                                                                                                 |
+| GET    | `/api/locations` · `/api/locations/:slug` | Area pages; detail includes available listing count                                                                                                                                 |
+| GET    | `/api/taxonomy`                           | Grouped by category for the filter panel                                                                                                                                            |
+| GET    | `/api/filters`                            | One call for all filter controls, incl. real price bounds                                                                                                                           |
+| GET    | `/api/settings`                           | Curated public projection — never the AI spend cap or analytics ids                                                                                                                 |
+| POST   | `/api/enquiries`                          | Lead capture, `strictLimiter`                                                                                                                                                       |
+| POST   | `/api/viewings`                           | Viewing request, `strictLimiter`                                                                                                                                                    |
+| POST   | `/api/search`                             | Natural-language search (§5), `strictLimiter`                                                                                                                                       |
 
 ### AI natural-language search — the rules that matter
 
-The pipeline is: normalise → **parse cache** → **deterministic parser** → *(model, only
-if needed and permitted)* → whitelist validation → same query engine → chips.
+The pipeline is: normalise → **parse cache** → **deterministic parser** → _(model, only
+if needed and permitted)_ → whitelist validation → same query engine → chips.
 
 - **The model never writes property information.** It only emits a filter object,
   which runs through `buildPropertyQuery` exactly like the filter panel's. This is
@@ -451,7 +458,7 @@ if needed and permitted)* → whitelist validation → same query engine → chi
   Matching includes **leading-word prefixes** of multi-word area names, because people
   search "Lekki" not "Lekki Phase 1", and "Ikeja" not "Ikeja GRA". Prefixes under four
   characters are skipped so "Old"/"New" can't hijack a phrase. An umbrella term
-  contributes *every* area it covers, so don't reintroduce match-and-consume per
+  contributes _every_ area it covers, so don't reintroduce match-and-consume per
   location.
 - **Zero-result relaxation widens to the state, not nationally.** A Lekki searcher
   shown houses in Enugu reads as a broken search. `relaxFilters` takes a
@@ -473,24 +480,25 @@ if needed and permitted)* → whitelist validation → same query engine → chi
 
 ## API endpoints (authenticated, built)
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| POST | `/api/auth/login` · `/api/auth/logout` | Cookie JWT; login throttled to 10 failures / 15 min |
-| GET | `/api/auth/me` | Restores admin-panel session on reload |
-| POST | `/api/auth/change-password` | Signs the session out afterwards |
-| GET/POST | `/api/admin/properties` | Table (drafts + deleted) and create |
-| PATCH/DELETE | `/api/admin/properties/:id` | Update; DELETE is a **soft** delete |
-| POST | `/api/admin/properties/:id/restore` | Undo a soft delete |
-| POST | `/api/admin/properties/:id/feature` | **Administrator only** |
-| GET | `/api/admin/enquiries` | Inbox: `status`, `type`, `source`, `agent`, `property`, `q`, `dateFrom/To`, `sort` |
-| GET | `/api/admin/enquiries/stats` | Counts by status — must stay declared before `/:id` |
-| GET/PATCH | `/api/admin/enquiries/:id` | Detail incl. `notes`; PATCH writes `status`, `notes`, `agent` |
-| DELETE | `/api/admin/enquiries/:id` | **Administrator only**, and a **hard** delete |
-| GET | `/api/admin/viewings` | Diary, soonest-first; `upcoming=true` hides the past |
-| GET/PATCH | `/api/admin/viewings/:id` | Detail incl. `notes`; PATCH drives the state machine |
-| DELETE | `/api/admin/viewings/:id` | **Administrator only**, and a **hard** delete |
+| Method       | Path                                   | Notes                                                                              |
+| ------------ | -------------------------------------- | ---------------------------------------------------------------------------------- |
+| POST         | `/api/auth/login` · `/api/auth/logout` | Cookie JWT; login throttled to 10 failures / 15 min                                |
+| GET          | `/api/auth/me`                         | Restores admin-panel session on reload                                             |
+| POST         | `/api/auth/change-password`            | Signs the session out afterwards                                                   |
+| GET/POST     | `/api/admin/properties`                | Table (drafts + deleted) and create                                                |
+| PATCH/DELETE | `/api/admin/properties/:id`            | Update; DELETE is a **soft** delete                                                |
+| POST         | `/api/admin/properties/:id/restore`    | Undo a soft delete                                                                 |
+| POST         | `/api/admin/properties/:id/feature`    | **Administrator only**                                                             |
+| GET          | `/api/admin/enquiries`                 | Inbox: `status`, `type`, `source`, `agent`, `property`, `q`, `dateFrom/To`, `sort` |
+| GET          | `/api/admin/enquiries/stats`           | Counts by status — must stay declared before `/:id`                                |
+| GET/PATCH    | `/api/admin/enquiries/:id`             | Detail incl. `notes`; PATCH writes `status`, `notes`, `agent`                      |
+| DELETE       | `/api/admin/enquiries/:id`             | **Administrator only**, and a **hard** delete                                      |
+| GET          | `/api/admin/viewings`                  | Diary, soonest-first; `upcoming=true` hides the past                               |
+| GET/PATCH    | `/api/admin/viewings/:id`              | Detail incl. `notes`; PATCH drives the state machine                               |
+| DELETE       | `/api/admin/viewings/:id`              | **Administrator only**, and a **hard** delete                                      |
 
 **Lead operation rules:**
+
 - **Agents see only leads assigned to them; unassigned leads are administrator-only.**
   A contact-page enquiry belongs to nobody until an admin assigns it. `scopeLeadQuery`
   in [auth.js](backend/middleware/auth.js) is applied **last** when building a list
@@ -504,7 +512,7 @@ if needed and permitted)* → whitelist validation → same query engine → chi
   [viewingTransitions.js](backend/utils/viewingTransitions.js), not by the UI hiding a
   button. Re-applying the current status is a no-op, not a 400 — a double-clicked
   Accept must not error. `accepted` inherits `requestedFor` when no `scheduledFor` is
-  given; `rescheduled` requires a *different* future one.
+  given; `rescheduled` requires a _different_ future one.
 - `contactedAt`, `closedAt` and `respondedAt` are stamped by model hooks and are **not**
   in either `WRITABLE_FIELDS`. They are response-time metrics — a writable timestamp is
   a falsifiable one. Controllers use `save()`, never `findByIdAndUpdate`, so the hooks
@@ -516,6 +524,7 @@ if needed and permitted)* → whitelist validation → same query engine → chi
   status change.
 
 **Auth rules:**
+
 - Token lives in an **httpOnly cookie** (`re_token`), never a response body or
   `localStorage`. Front end relies on Axios `withCredentials: true`.
 - `requireAuth` **re-loads the account on every request** rather than trusting the
@@ -544,6 +553,7 @@ let the AI path return results the filter UI cannot reproduce, which is the exac
 failure mode §5.1 exists to prevent.
 
 Other invariants worth keeping:
+
 - The public scope (`publicationState: "published"`, `deletedAt: null`) is applied
   unconditionally inside the query builder, not per call site.
 - A draft or soft-deleted listing must **404 like a non-existent one** — a different

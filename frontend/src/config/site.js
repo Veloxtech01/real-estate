@@ -38,6 +38,45 @@ const siteConfig = {
     { href: "/properties?listingType=rent", label: "Rent" },
     { href: "/properties", label: "All listings" },
   ],
+
+  // Seller/landlord CTA destination, used by the header and the homepage CTA band.
+  // WhatsApp rather than a page: the §3 "list your property" route does not exist yet,
+  // and WhatsApp is the channel this market actually replies on. Swap this for the
+  // route when that slice lands — nothing else needs editing.
+  listPropertyHref:
+    "https://wa.me/2348000000000?text=I%20have%20a%20property%20to%20list",
+
+  /*
+   * Footer link columns.
+   *
+   * Every href here must resolve to a route that exists. A footer full of dead links to
+   * unbuilt Blog / Guides / FAQ pages looks worse than a short footer, so unbuilt
+   * sections are absent, not stubbed. "Property types" are pre-filtered searches, which
+   * is a real destination today and stays valid once area pages ship.
+   *
+   * The `propertyType` values must match the backend enum in utils/constants.js — they
+   * are query values, not labels.
+   */
+  footerLinks: [
+    {
+      heading: "Explore",
+      links: [
+        { href: "/properties?listingType=sale", label: "Homes for sale" },
+        { href: "/properties?listingType=rent", label: "Homes to let" },
+        { href: "/properties?isFeatured=true", label: "Featured listings" },
+        { href: "/properties", label: "All listings" },
+      ],
+    },
+    {
+      heading: "Property types",
+      links: [
+        { href: "/properties?propertyType=duplex", label: "Duplexes" },
+        { href: "/properties?propertyType=apartment", label: "Flats and apartments" },
+        { href: "/properties?propertyType=land", label: "Land" },
+        { href: "/properties?propertyType=commercial", label: "Commercial" },
+      ],
+    },
+  ],
 };
 
 export default siteConfig;

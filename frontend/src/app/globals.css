@@ -5,29 +5,49 @@
  * Every brand colour and font in the product resolves to a variable defined here.
  * Rebranding a copied repo means editing this block and src/config/site.js — nothing else.
  * No component may hardcode a hex value.
+ *
+ * Brand palette: Navy #0D1B2A · Ivory #F7F3EA · Gold #C6A15B · Taupe #9B9185.
+ * The four brand hues are the identity; the tokens below are their WCAG-safe working
+ * forms. Where a brand hue fails contrast as text (gold and taupe both do on ivory),
+ * a darkened sibling carries the text and the brand hue stays decorative.
  */
 @theme {
-  /* Warm near-black. Headings, primary buttons, footer ground. */
-  --color-ink: #1c1917;
-  /* Secondary text, meta lines, field labels. */
-  --color-ink-soft: #44403c;
-  /* Tertiary text. ~4.9:1 on --color-surface — the lightest text permitted. */
-  --color-muted: #78716c;
-  /* Gold accent. ~3.3:1 on surface, so: rules, borders, icon fills, large display
-     type and hover states ONLY. Never small text. */
-  --color-accent: #ca8a04;
-  /* The AA-safe gold (~4.6:1). Any gold *text* uses this instead. */
-  --color-accent-text: #a16207;
-  /* Page ground — warm off-white, not pure white. */
-  --color-surface: #fafaf9;
-  /* Cards, panels, sheets. */
-  --color-surface-raised: #ffffff;
-  --color-border: #e7e5e4;
-  --color-text: #0c0a09;
-  /* Listing status colours. Always paired with a text label — never colour alone. */
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-danger: #b91c1c;
+  /* Brand navy. Headings, primary buttons, footer ground. 15.7:1 on surface. */
+  --color-ink: #0d1b2a;
+  /* Navy pushed darker. Header and footer grounds, and the hero scrim's far end — so a
+     navy panel laid on top of them still reads as a separate plane. */
+  --color-ink-deep: #081320;
+  /* Navy lifted. Panels, inputs and cards that sit ON a navy ground (the hero search
+     panel, footer form fields). The dark-mode equivalent of --color-surface-raised. */
+  --color-ink-raised: #16283c;
+  /* Secondary text, meta lines, field labels. Navy lightened, 8.5:1. */
+  --color-ink-soft: #35485c;
+  /* Tertiary text. Taupe darkened to 5.4:1 — the lightest text permitted. */
+  --color-muted: #6b6357;
+  /* Brand gold. On IVORY it is 2.2:1, so: decorative rules, icon fills, hover washes
+     and large display type ONLY. Never body text there.
+     ON NAVY it is a different animal — 6.6:1 on --color-ink — so gold text, gold fills
+     and gold borders are all legitimate on a dark ground. That asymmetry is the whole
+     reason the site alternates ivory and navy sections: navy is where gold gets loud. */
+  --color-accent: #c6a15b;
+  /* The AA-safe gold (5.2:1) for gold text on IVORY. Also the focus ring. */
+  --color-accent-text: #7e6124;
+  /* Gold lifted, for hover on a gold fill — a fill must not darken toward its own
+     text colour on hover, so gold hovers brighter rather than deeper. */
+  --color-accent-hover: #d8b981;
+  /* Brand taupe. Decorative only (2.8:1): dividers, empty-state art, image scrims. */
+  --color-taupe: #9b9185;
+  /* Page ground — brand ivory. */
+  --color-surface: #f7f3ea;
+  /* Cards, panels, sheets — ivory lifted, so a card still reads above the page. */
+  --color-surface-raised: #fffdf7;
+  --color-border: #e3dccb;
+  --color-text: #0a1620;
+  /* Listing status colours, warmed to sit with ivory. Always paired with a text label
+     — never colour alone. All ≥4.8:1 on surface. */
+  --color-success: #167a3c;
+  --color-warning: #9a5b12;
+  --color-danger: #b3261e;
 
   /* Bound to next/font variables in layout.js. Playfair is display-only. */
   --font-display: var(--font-playfair), Georgia, serif;
@@ -70,8 +90,19 @@ h3 {
 
 /* One focus treatment for the entire site. */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-accent-text);
   outline-offset: 2px;
+}
+
+/*
+ * Dark-ground escape hatch. The ivory focus ring is the darkened gold, which all but
+ * vanishes on navy — so any element inside a navy section switches to the brand gold
+ * (6.6:1 there). Mark a navy region with `on-dark` and the ring follows automatically;
+ * without this, keyboard users lose focus entirely on the header, hero and footer.
+ */
+.on-dark:focus-visible,
+.on-dark :focus-visible {
+  outline-color: var(--color-accent);
 }
 
 /* Honour the OS motion preference globally rather than per-animation. */

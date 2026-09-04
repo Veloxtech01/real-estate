@@ -35,34 +35,54 @@ cover image gets a designed placeholder, never a broken frame.
 
 ## 2. Colour tokens
 
-Warm neutral base with a restrained gold accent. Replaces the tool's teal suggestion,
-which reads as a generic property portal rather than a premium agency.
+Brand palette: **Navy `#0D1B2A` · Ivory `#F7F3EA` · Gold `#C6A15B` · Taupe `#9B9185`.**
+The four hues are the identity; the tokens below are their WCAG-safe working forms.
+Gold and taupe both fail AA as text on ivory, so each has a darkened sibling that
+carries text while the brand hue stays decorative.
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `--color-ink` | `#1C1917` | Primary. Headings, primary buttons, footer ground |
-| `--color-ink-soft` | `#44403C` | Secondary text, meta, labels |
-| `--color-muted` | `#78716C` | Tertiary text — the lightest permitted on `surface` |
-| `--color-accent` | `#CA8A04` | Gold. Rules, badges, hover, active states, icon fills |
-| `--color-accent-text` | `#A16207` | The AA-safe gold. **Any gold text uses this, not `--color-accent`** |
-| `--color-surface` | `#FAFAF9` | Page ground (warm off-white, not pure white) |
-| `--color-surface-raised` | `#FFFFFF` | Cards, panels, sheets |
-| `--color-border` | `#E7E5E4` | Hairlines, card edges, dividers |
-| `--color-text` | `#0C0A09` | Body text |
-| `--color-success` | `#15803D` | "Available" status |
-| `--color-warning` | `#B45309` | "Under offer" status |
-| `--color-danger` | `#B91C1C` | Form errors, "Sold"/"Rented" |
+| `--color-ink` | `#0D1B2A` | Brand navy. Headings, primary buttons, dark section grounds (15.7:1) |
+| `--color-ink-deep` | `#081320` | Navy pushed darker. Header, footer, hero scrim, page-header bands |
+| `--color-ink-raised` | `#16283C` | Navy lifted. Panels and inputs sitting **on** navy — the dark `surface-raised` |
+| `--color-ink-soft` | `#35485C` | Secondary text, meta, labels (8.5:1) |
+| `--color-muted` | `#6B6357` | Tertiary text — taupe darkened, the lightest permitted on `surface` (5.4:1) |
+| `--color-accent` | `#C6A15B` | Brand gold. Decorative rules, icon fills, hover washes, large display type |
+| `--color-accent-text` | `#7E6124` | The AA-safe gold on **ivory** (5.2:1). Gold text on ivory, and the light focus ring |
+| `--color-accent-hover` | `#D8B981` | Gold lifted, for hover on a gold fill — a fill hovers brighter, never darker |
+| `--color-taupe` | `#9B9185` | Brand taupe. Decorative only (2.8:1): dividers, empty-state art, image scrims |
+| `--color-surface` | `#F7F3EA` | Page ground (brand ivory) |
+| `--color-surface-raised` | `#FFFDF7` | Cards, panels, sheets — ivory lifted, so a card reads above the page |
+| `--color-border` | `#E3DCCB` | Hairlines, card edges, dividers |
+| `--color-text` | `#0A1620` | Body text |
+| `--color-success` | `#167A3C` | "Available" status (4.9:1) |
+| `--color-warning` | `#9A5B12` | "Under offer" status (4.9:1) |
+| `--color-danger` | `#B3261E` | Form errors, "Sold"/"Rented" (5.9:1) |
 
 ### Contrast rules (non-negotiable)
 
-- `#CA8A04` on `#FAFAF9` is **~3.3:1** — it fails AA for normal text. Gold is for
-  borders, rules, icon fills, large display type, and hover states. **Never** small
-  gold body text; use `--color-accent-text` (`#A16207`, ~4.6:1) when gold text is
-  genuinely wanted.
+- `#C6A15B` on `#F7F3EA` is **~2.2:1** — it fails AA for text *and* the 3:1 minimum for
+  meaningful non-text UI. Gold is decoration: hover washes, icon fills, large display
+  type, and rules that duplicate a boundary the `border` token already draws. **Never**
+  small gold text, and never a border that is the only thing marking an edge.
+- The focus ring is `--color-accent-text`, not `--color-accent` — at 2.2:1 the brand
+  gold would be an invisible focus indicator.
+- `--color-taupe` is decorative only at 2.8:1. Taupe *text* is `--color-muted`.
 - Primary buttons are white-on-`ink`. Gold is not a button fill with white text.
-- `--color-muted` (`#78716C`, ~4.9:1 on surface) is the lightest text permitted.
+- `--color-muted` (`#6B6357`, ~5.4:1 on surface) is the lightest text permitted.
   Do not reach for a lighter grey to "soften" something.
 - Status is never communicated by colour alone — every status badge carries its label.
+- On navy grounds ivory is 15.7:1 and gold is **6.6:1** — gold *is* permitted as text,
+  as a fill and as a meaningful border there. The restriction is gold-on-ivory, not gold
+  everywhere. **This asymmetry is why the site alternates ivory and navy sections:**
+  navy is where the accent is allowed to be loud, so the layout earns its colour by
+  changing ground rather than by pushing gold past its contrast on ivory.
+- A gold **fill** always carries navy text (6.6:1). Gold with white text is 1.9:1 and is
+  never permitted — this is what `Button`'s `accent` variant encodes.
+- The focus ring flips with the ground. `:focus-visible` is `--color-accent-text` by
+  default; anything inside an element marked **`.on-dark`** switches to `--color-accent`.
+  Every navy region — header, hero, dark `Section`, footer, mobile drawer, search panel,
+  page-header band — must carry `on-dark`, or keyboard focus disappears inside it.
 
 ### Dark mode
 
@@ -115,6 +135,14 @@ Fluid display sizes via `clamp()`; fixed steps below that.
   the whole site — no mixing `max-w-6xl` in some sections.
 - **Section rhythm:** `py-16 md:py-24 lg:py-32`. The generous end of the range is
   deliberate; whitespace is the style.
+- **Section tone is the primary visual device.** `Section` takes
+  `tone="light" | "raised" | "dark"` and owns the ground *and* the heading colours
+  together, so a tone can never be half-applied. Pages alternate: the homepage runs navy
+  hero → ivory featured → navy stats → ivory areas → navy trust → raised testimonials →
+  navy CTA. Never hand-roll a `bg-` class on a section instead of passing a tone.
+- **Every page opens and closes on navy.** The header and footer are `ink-deep`, and
+  inner pages get a navy page-header band (see `/properties`) rather than starting on
+  bare ivory. Without it, page two looks like a different site from the homepage.
 - **Grids:** results 1 col → 2 (`sm`) → 3 (`lg`). Featured rail 1 → 2 → 3.
   Detail page 2-column at `lg` (content + sticky enquiry rail), stacked below.
 - **Breakpoints tested:** 375, 768, 1024, 1440.
@@ -141,6 +169,21 @@ Fluid display sizes via `clamp()`; fixed steps below that.
 - All motion wrapped in `prefers-reduced-motion` respect. `motion` (Framer) is the only
   animation library.
 
+### Accent weight
+
+- **Accents have mass, not hairlines.** An icon is a filled disc
+  (`bg-accent/15 text-accent ring-1 ring-accent/30`), not a bare outline glyph; a badge
+  is a solid fill, not a 10% wash. A 1px gold rule is a supporting mark under a heading,
+  never the only accent in a section.
+- **Badges are solid fills with a contrasting label** — white on the three status
+  colours, navy on gold. A status badge always sits on a photograph, so it must carry
+  its own ground or it reads as whatever the image is behind it.
+- **One primary action per region gets the gold fill.** `Button`'s `accent` variant is
+  the loudest control on the site; competing gold fills in one region mean none of them
+  reads as primary — which is why the hero's secondary CTAs are outlined and the gold
+  belongs to the search submit. Two instances of the *same* action (the hero's free-text
+  submit and its panel submit) are fine; two *different* actions are not.
+
 ### Imagery
 
 - `next/image` everywhere. Explicit `sizes` per layout so the browser doesn't fetch a
@@ -151,7 +194,18 @@ Fluid display sizes via `clamp()`; fixed steps below that.
 - `blurDataUrl`, `width` and `height` are **frequently absent** on real data. Guard every
   one; fall back to a designed placeholder with the agency mark, never a broken frame.
 - Alt text is generated from the listing (`"4 bedroom duplex in Lekki Phase 1"`), never
-  empty on a meaningful image.
+  empty on a meaningful image. The **hero photograph is the exception**: it is decorative
+  stock, so its alt is empty on purpose — describing it would announce a property the
+  agency is not offering.
+- **A photograph behind text always carries a scrim.** White display type over an
+  unmodified photo is unreadable wherever the image happens to be pale, and the hero
+  image is placeholder stock that gets swapped per client — so contrast can never depend
+  on a particular photo being dark. The homepage hero uses two gradients: a horizontal
+  wash for the copy, and a vertical one that lands the bottom edge on solid navy so the
+  search panel joins without a seam.
+- Hero and other placeholder assets in `/public` are credited in
+  `frontend/public/CREDITS.md` and must be replaced with the agency's own photography
+  before a client launch.
 
 ### Loading & empty states
 

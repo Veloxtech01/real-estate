@@ -22,9 +22,11 @@ export default function PropertyCard({ property, priority = false }) {
   const showRooms = property.bedrooms > 0;
 
   return (
+    // Hover lifts the card with a shadow, not a transform: `scale` on a grid child
+    // shifts its neighbours, which the design system rules out.
     <Link
       href={propertyPath(property)}
-      className="group block overflow-hidden rounded-lg border border-border bg-surface-raised transition-colors duration-200 hover:border-accent"
+      className="group block overflow-hidden rounded-lg border border-border bg-surface-raised transition-[border-color,box-shadow] duration-200 hover:border-accent hover:shadow-xl hover:shadow-ink/10"
     >
       {/* Image region — fixed 4/3 ratio reserves space so the grid never reflows. */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-ink/5">
@@ -75,7 +77,9 @@ export default function PropertyCard({ property, priority = false }) {
         </div>
 
         {/* Price block */}
-        <div className="mt-5 flex items-baseline gap-2 border-t border-border pt-4">
+        {/* Gold hairline above the price rather than the neutral border — the price is
+            the card's payload and the rule is what points at it. */}
+        <div className="mt-5 flex items-baseline gap-2 border-t-2 border-accent/40 pt-4">
           <span className="tabular font-display text-xl text-ink">{price.label}</span>
           {/* Rent period is always stated — omitting it reads as a monthly figure. */}
           {price.suffix && <span className="text-sm text-muted">{price.suffix}</span>}

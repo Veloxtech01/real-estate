@@ -2,24 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiMenu, FiX, FiPhone } from "react-icons/fi";
+import Button from "@/components/ui/Button";
 import siteConfig from "@/config/site";
 
 /**
  * Mobile navigation drawer. Client component because it holds open/closed state —
  * it is deliberately a leaf so the rest of the header stays server-rendered.
+ *
+ * The drawer is navy, matching the header it opens from: an ivory sheet dropping out of
+ * a navy bar reads as a different site for the moment it animates in.
  */
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       {/* Icon-only control: aria-label is required for screen readers. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="flex h-11 w-11 cursor-pointer items-center justify-center text-ink"
+        aria-expanded={open}
+        className="flex h-11 w-11 cursor-pointer items-center justify-center text-white transition-colors duration-200 hover:text-accent"
       >
         <FiMenu size={22} aria-hidden="true" />
       </button>
@@ -27,19 +32,20 @@ export default function MobileNav() {
       {/* Drawer renders only when open — nothing to trap focus behind when closed. */}
       {open && (
         <div
-          className="fixed inset-0 bg-surface"
+          // `on-dark` keeps the focus ring visible against the navy sheet.
+          className="on-dark fixed inset-0 overflow-y-auto bg-ink-deep"
           style={{ zIndex: "var(--z-dropdown)" }}
           role="dialog"
           aria-modal="true"
           aria-label="Site menu"
         >
           <div className="flex items-center justify-between px-4 py-4">
-            <span className="font-display text-lg text-ink">{siteConfig.name}</span>
+            <span className="font-display text-lg text-white">{siteConfig.name}</span>
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
-              className="flex h-11 w-11 cursor-pointer items-center justify-center text-ink"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center text-white transition-colors duration-200 hover:text-accent"
             >
               <FiX size={22} aria-hidden="true" />
             </button>
@@ -52,12 +58,28 @@ export default function MobileNav() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="border-b border-border py-4 font-display text-2xl text-ink transition-colors duration-200 hover:text-accent-text"
+                className="border-b border-white/10 py-4 font-display text-2xl text-white transition-colors duration-200 hover:text-accent"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
+
+          {/* Both conversion paths repeated at the foot of the drawer — a visitor who
+              opened the menu to find a phone number should not have to close it. */}
+          <div className="flex flex-col gap-3 px-4 pt-8">
+            <Button href={`tel:${siteConfig.phone}`} variant="accent" size="lg">
+              <FiPhone size={16} aria-hidden="true" />
+              {siteConfig.phone}
+            </Button>
+            <Button
+              href={siteConfig.listPropertyHref}
+              variant="onDarkOutline"
+              size="lg"
+            >
+              List your property
+            </Button>
+          </div>
         </div>
       )}
     </div>

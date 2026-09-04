@@ -42,6 +42,13 @@ site that happens to contain listings. Marketing pages added:
 - **Areas we cover** — one page per neighbourhood (Lekki, Ikoyi, Ajah, Ikeja GRA,
   Maitama, Wuse, etc.) — cheap to build, strong organic traffic source
 
+> **Services narrowed to one hub page, deliberately.** This bullet describes six
+> separate service pages/SEO entry points. The 2026-09-04 marketing-pages slice
+> ships one `/services` hub page with a section per service instead — six pages of
+> invented placeholder copy serves nobody, and individual `/services/[slug]` pages
+> are a straightforward follow-up once there is real copy to put on them. See
+> `docs/superpowers/specs/2026-09-04-marketing-pages-design.md`.
+
 ## 4. Phase 1 — core build (6–8 weeks, launchable)
 
 ### 4.1 Public site
@@ -266,6 +273,16 @@ multi-tenancy, all of it is about making the copy-and-rebrand step fast:
 - **Content in the database, not in code** — homepage hero text, service descriptions,
   about copy. The reason here is client independence, not tenancy: each client's own
   staff edit their own copy without a developer or a deployment.
+
+  > **Deviates in practice, so far.** Homepage copy (`content/home.js`) and, as of
+  > the 2026-09-04 marketing-pages slice, About/Services/Contact copy are hardcoded
+  > in `src/content/` rather than read from `pageModel`, even though the model
+  > exists and is seeded for exactly this. The gap is that nothing reads it and
+  > there is no admin editor to change it — building that pipeline was out of scope
+  > for both slices. Team is the one page in this set that IS DB-backed
+  > (`GET /api/agents`), because a roster is structured business data, not
+  > marketing copy. This bullet's intent still holds as the target; `pageModel`
+  > plus a content editor is the natural next slice to actually deliver it.
 - **Clean module boundaries instead of feature flags** — short-let, off-plan, blog, AI
   search, saved searches should be separable enough that an unneeded module can simply be
   left unwired (or deleted) in a client's copy without unpicking core code. Runtime

@@ -146,9 +146,13 @@ Two-package repo, MERN-family stack:
 >   [backend/scripts/demoImages.js](backend/scripts/demoImages.js) and refreshed by hand
 >   with `node scripts/fetchDemoImages.js` (needs `PEXELS_API_KEY`). **Replace with the
 >   agency's own photography before a client launch** — see `frontend/public/CREDITS.md`.
+> - **Marketing pages built** — `/about`, `/services`, `/team`, `/team/[slug]` and
+>   `/contact`, closing the §3 gap. About/Services/Contact copy is hardcoded in
+>   `src/content/`, matching `home.js`; Team is backed by a new public
+>   `GET /api/agents` · `GET /api/agents/:slug` (public + active profiles only).
+>   See the conventions note below before "fixing" this back toward `pageModel`.
 > - **Not built:** staff management, blog editor, settings admin, the
->   §4.3 daily digest — plus neighbourhood/agent pages, marketing pages and blog on
->   the frontend.
+>   §4.3 daily digest — plus neighbourhood pages and blog on the frontend.
 > - 255/255 backend tests and 140/140 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
@@ -353,6 +357,15 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   a handful of requests and then 401s, so a full run cannot complete without a key).
 - **The admin panel is deliberately excluded from this restyle** — it is a different
   product with its own chrome, and dragging the marketing look into it helps nobody.
+- **Marketing-page copy (About/Services/Contact) is hardcoded in `src/content/`,
+  same as the homepage — not `pageModel`-backed.** `pageModel` exists and is
+  seeded, but nothing reads it and there is no admin editor to change it yet;
+  building that read path was out of scope for the marketing-pages slice. This is
+  a deliberate, discussed deviation from §9's DB-content preference — see
+  `docs/PROJECT-SCOPE.md` §9 and
+  `docs/superpowers/specs/2026-09-04-marketing-pages-design.md`. Team is the one
+  exception: `agentModel` is real structured data, so it is served from a public
+  API instead of being duplicated into a content file.
 
 ### Admin panel conventions
 
@@ -531,6 +544,7 @@ tests/          vitest + supertest + mongodb-memory-server
 | GET    | `/api/properties/:slug`                   | Detail + gallery + related listings                                                                                                                                                 |
 | GET    | `/api/locations` · `/api/locations/:slug` | Area pages; detail includes available listing count                                                                                                                                 |
 | GET    | `/api/taxonomy`                           | Grouped by category for the filter panel                                                                                                                                            |
+| GET    | `/api/agents` · `/api/agents/:slug`       | Public team roster and profile pages (§3); `isPublic && isActive` only                                                                                                              |
 | GET    | `/api/filters`                            | One call for all filter controls, incl. real price bounds                                                                                                                           |
 | GET    | `/api/settings`                           | Curated public projection — never the AI spend cap or analytics ids                                                                                                                 |
 | POST   | `/api/enquiries`                          | Lead capture, `strictLimiter`                                                                                                                                                       |

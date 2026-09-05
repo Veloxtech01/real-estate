@@ -6,7 +6,7 @@ import Hero from "@/components/home/Hero";
 import StatsBand from "@/components/home/StatsBand";
 import Testimonials from "@/components/home/Testimonials";
 import PropertyGrid from "@/components/property/PropertyGrid";
-import { getFeatured, getLocations, getFilters } from "@/lib/api/server";
+import { getFeatured, getLocations, getFilters, getTestimonials } from "@/lib/api/server";
 import homeContent from "@/content/home";
 import siteConfig from "@/config/site";
 
@@ -33,13 +33,15 @@ export default async function HomePage() {
   // has its own landing page, and those are a later slice. These tiles are just
   // pre-filtered searches, so an unpublished area is still a valid destination. Add
   // `{ published: true }` here when /area/[slug] pages exist.
-  const [featured, locations, filterOptions] = await Promise.all([
+  const [featured, locations, filterOptions, testimonialsData] = await Promise.all([
     getFeatured(6),
     getLocations(),
     getFilters(),
+    getTestimonials(6),
   ]);
 
   const properties = featured?.properties ?? [];
+  const testimonials = testimonialsData?.testimonials ?? [];
   // Show a manageable strip of areas; the full list lives on the search page filter.
   const areas = (locations?.locations ?? []).slice(0, 8);
 
@@ -127,8 +129,13 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* Client quotes. Placeholder copy — see content/home.js. */}
-      <Testimonials />
+      {/* Client quotes — real data from GET /api/testimonials. Testimonials itself
+          renders nothing when none have been curated yet; no placeholder fallback. */}
+      <Testimonials
+        eyebrow={homeContent.testimonials.eyebrow}
+        title={homeContent.testimonials.title}
+        items={testimonials}
+      />
 
       {/* Seller/landlord CTA — the §3 "list your property" pipeline. Until that page
           exists this opens WhatsApp, which is still a lead. */}

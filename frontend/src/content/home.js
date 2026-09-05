@@ -64,37 +64,11 @@ const homeContent = {
     { value: "10+", label: "Years of practice", caption: "In Nigerian real estate" },
   ],
 
-  /*
-   * Testimonials.
-   *
-   * ⚠️ PLACEHOLDER COPY, written for layout. `testimonialModel` exists in the backend
-   * but has no public endpoint yet; when one ships, this section reads from the API and
-   * this block is deleted. Publishing invented client quotes under real names would be
-   * a misrepresentation — replace before launch, do not simply rename.
-   */
+  // Testimonials rail heading. The quotes themselves are real data from
+  // GET /api/testimonials, not content — see components/home/Testimonials.jsx.
   testimonials: {
     eyebrow: "What our clients say",
     title: "Trusted by discerning clients",
-    items: [
-      {
-        quote:
-          "They confirmed the title before we ever booked a viewing. That alone saved us a wasted trip to a property that was never going to complete.",
-        name: "Placeholder client",
-        role: "Buyer, Lekki",
-      },
-      {
-        quote:
-          "One consultant handled the whole let, start to finish. No being passed around, no explaining myself twice.",
-        name: "Placeholder client",
-        role: "Landlord, Ikoyi",
-      },
-      {
-        quote:
-          "The rent was quoted per annum with the advance stated up front. It is the first time an agency has been that plain with me about the numbers.",
-        name: "Placeholder client",
-        role: "Tenant, Ikeja",
-      },
-    ],
   },
 
   cta: {

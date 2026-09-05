@@ -131,3 +131,14 @@ export function getAgent(slug) {
     tags: ["agents", `agent:${slug}`],
   });
 }
+
+/**
+ * Homepage testimonials rail. Legitimately returns an empty array until real
+ * testimonials are curated (§3) — no seeded placeholder stands in for it.
+ */
+export function getTestimonials(limit = 6) {
+  return request(`/testimonials?limit=${limit}`, {
+    revalidate: 300,
+    tags: ["testimonials"],
+  });
+}

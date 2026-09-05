@@ -1,20 +1,17 @@
 import Section from "@/components/ui/Section";
-import homeContent from "@/content/home";
 
 /**
  * Client testimonials, three across on an ivory ground.
  *
- * The quotes are placeholders held in content/home.js — see the warning there. When the
- * public testimonials endpoint ships, this takes an `items` prop from the server
- * component instead of reading the content module, and nothing else here changes.
+ * `items` comes from GET /api/testimonials via the homepage server component — this
+ * component holds no fallback content of its own. An empty rail reads as a fault, so
+ * an empty or omitted `items` renders nothing rather than an empty grid; that is also
+ * today's honest state until real testimonials are curated (see the design spec).
  *
- * No avatars: the mockup's stock headshots would be photographs of people who never
- * said these words. A name and a role carry the same layout weight without inventing a
- * face, and stay correct once the copy is real.
+ * No avatars: a stock headshot would be a photograph of someone who never said these
+ * words. A name and a role carry the same layout weight without inventing a face.
  */
-export default function Testimonials() {
-  const { eyebrow, title, items = [] } = homeContent.testimonials ?? {};
-  // An empty rail reads as a fault — omit the section entirely instead.
+export default function Testimonials({ eyebrow, title, items = [] }) {
   if (items.length === 0) return null;
 
   return (
@@ -24,7 +21,7 @@ export default function Testimonials() {
           // <figure>/<blockquote>/<figcaption> is the correct structure for a quote
           // with an attribution — it is what carries the relationship to a screen reader.
           <figure
-            key={item.quote}
+            key={item._id}
             className="flex h-full flex-col rounded-lg border border-border bg-surface p-7 transition-colors duration-200 hover:border-accent"
           >
             {/* Oversized gold quote mark. Decorative — the quote itself is the text,
@@ -39,8 +36,8 @@ export default function Testimonials() {
             <blockquote className="mt-4 flex-1 text-ink-soft">{item.quote}</blockquote>
 
             <figcaption className="mt-6 border-t border-border pt-5">
-              <p className="font-medium text-ink">{item.name}</p>
-              <p className="mt-0.5 text-sm text-muted">{item.role}</p>
+              <p className="font-medium text-ink">{item.clientName}</p>
+              <p className="mt-0.5 text-sm text-muted">{item.clientTitle}</p>
             </figcaption>
           </figure>
         ))}

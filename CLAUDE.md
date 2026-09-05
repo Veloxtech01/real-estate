@@ -151,9 +151,14 @@ Two-package repo, MERN-family stack:
 >   `src/content/`, matching `home.js`; Team is backed by a new public
 >   `GET /api/agents` · `GET /api/agents/:slug` (public + active profiles only).
 >   See the conventions note below before "fixing" this back toward `pageModel`.
+> - **Homepage testimonials built** — `GET /api/testimonials` (published, curator-ordered,
+>   `?limit=`) replaces the fabricated placeholder quotes that used to live in
+>   `content/home.js`. No demo testimonials are seeded — see the design spec for why —
+>   so the rail renders nothing on a fresh copy until real ones are curated by a direct
+>   database write.
 > - **Not built:** staff management, blog editor, settings admin, the
 >   §4.3 daily digest — plus neighbourhood pages and blog on the frontend.
-> - 255/255 backend tests and 140/140 frontend tests pass; both packages lint clean.
+> - 262/262 backend tests and 149/149 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -545,6 +550,7 @@ tests/          vitest + supertest + mongodb-memory-server
 | GET    | `/api/locations` · `/api/locations/:slug` | Area pages; detail includes available listing count                                                                                                                                 |
 | GET    | `/api/taxonomy`                           | Grouped by category for the filter panel                                                                                                                                            |
 | GET    | `/api/agents` · `/api/agents/:slug`       | Public team roster and profile pages (§3); `isPublic && isActive` only                                                                                                              |
+| GET    | `/api/testimonials`                       | Curated client feedback (§3), published + ordered only; `?limit=`                                                                                                                   |
 | GET    | `/api/filters`                            | One call for all filter controls, incl. real price bounds                                                                                                                           |
 | GET    | `/api/settings`                           | Curated public projection — never the AI spend cap or analytics ids                                                                                                                 |
 | POST   | `/api/enquiries`                          | Lead capture, `strictLimiter`                                                                                                                                                       |

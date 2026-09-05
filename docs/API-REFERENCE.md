@@ -223,6 +223,17 @@ only — a private or inactive agent 404s identically to an unknown slug.
 
 ---
 
+## `GET /api/testimonials`
+
+Agency-curated client feedback (§3) — never a public review system; entries are
+staff-entered and there is no submission path. Published only, in curator-set order.
+
+`{ "testimonials": [{ "_id", "clientName", "clientTitle", "quote", "photo", "rating" }] }`.
+`?limit=` caps the count. An empty array is a legitimate answer, not an error — the
+homepage's `Testimonials` component renders nothing until at least one is curated.
+
+---
+
 ## `GET /api/settings` — site chrome and theme
 
 ```jsonc
@@ -727,9 +738,9 @@ keeps working.
 
 ## Not built yet
 
-No endpoints exist for: staff management, blog posts, pages, testimonials, or settings
-updates. The **models exist** for all of them — only the routes and controllers are
-missing. Don't build admin UI against these until the endpoints are written.
+No endpoints exist for: staff management, blog posts, pages, or settings updates. The
+**models exist** for all of them — only the routes and controllers are missing. Don't
+build admin UI against these until the endpoints are written.
 
 The §4.3 **daily enquiry digest** is also unbuilt: it needs a scheduler decision
 (in-process cron vs. a platform cron hitting a protected route) that is really a

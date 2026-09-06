@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiGrid, FiInbox, FiCalendar, FiHome, FiUsers, FiFileText, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import { FiGrid, FiInbox, FiCalendar, FiHome, FiUsers, FiFileText, FiSettings, FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import siteConfig from "@/config/site";
 import { useAdminSession } from "@/components/admin/AdminSessionProvider";
 
 /**
- * Admin navigation. "Staff" and "Blog" are appended in the component body rather
- * than listed here, since both are shown only to administrators — courtesy, not
- * security, matching every other role-gated control in this panel; the API's
- * authorizeRole is the actual gate.
+ * Admin navigation. "Blog", "Staff" and "Settings" are appended in the component body
+ * rather than listed here, since all three are shown only to administrators —
+ * courtesy, not security, matching every other role-gated control in this panel; the
+ * API's authorizeRole is the actual gate.
  */
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: FiGrid },
@@ -31,6 +31,7 @@ export default function AdminSidebar() {
           ...NAV,
           { href: "/admin/blog", label: "Blog", icon: FiFileText },
           { href: "/admin/staff", label: "Staff", icon: FiUsers },
+          { href: "/admin/settings", label: "Settings", icon: FiSettings },
         ]
       : NAV;
 

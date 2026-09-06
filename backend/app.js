@@ -22,6 +22,7 @@ import adminViewingRoutes from "./routes/adminViewingRoutes.js";
 import adminReferenceRoutes from "./routes/adminReferenceRoutes.js";
 import adminStaffRoutes from "./routes/adminStaffRoutes.js";
 import adminBlogRoutes from "./routes/adminBlogRoutes.js";
+import adminSettingsRoutes from "./routes/adminSettingsRoutes.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -96,6 +97,9 @@ export function createApp() {
 
   // Blog editor (§4.2, §7) — administrator-only CRUD over blogPostModel.
   app.use("/api/admin/blog", adminBlogRoutes);
+
+  // Settings screen (§9, §11) — administrator-only read/write over the singleton.
+  app.use("/api/admin/settings", adminSettingsRoutes);
 
   // Shared editor vocabulary — enums, the statutory rent table, the staff roster.
   app.use("/api/admin/reference", adminReferenceRoutes);

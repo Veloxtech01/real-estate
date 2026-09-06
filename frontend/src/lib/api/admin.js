@@ -136,6 +136,19 @@ export async function restoreBlogPost(id) {
   return data.data.post;
 }
 
+/** The full settings document, including operational fields the public endpoint
+ *  never sends (AI spend cap/current spend, analytics ids). Administrator only. */
+export async function getAdminSettings() {
+  const { data } = await apiClient.get("/admin/settings");
+  return data.data.settings;
+}
+
+/** Saves a settings patch. Administrator only. */
+export async function updateAdminSettings(body) {
+  const { data } = await apiClient.patch("/admin/settings", body);
+  return data.data.settings;
+}
+
 /** The enquiry inbox. `params` is the filter object; axios serialises arrays. */
 export async function getEnquiries(params = {}) {
   const { data } = await apiClient.get("/admin/enquiries", { params });

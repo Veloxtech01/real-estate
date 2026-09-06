@@ -142,3 +142,19 @@ export function getTestimonials(limit = 6) {
     tags: ["testimonials"],
   });
 }
+
+/** The blog index. `{ posts, pagination }`, published-only, newest first. */
+export function getBlogPosts({ page = 1, limit = 9 } = {}) {
+  return request(`/blog?page=${page}&limit=${limit}`, {
+    revalidate: 300,
+    tags: ["blog"],
+  });
+}
+
+/** One post by slug, with its body. Null on 404 (draft, deleted, or unknown). */
+export function getBlogPost(slug) {
+  return request(`/blog/${encodeURIComponent(slug)}`, {
+    revalidate: 300,
+    tags: ["blog", `blog:${slug}`],
+  });
+}

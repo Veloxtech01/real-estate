@@ -87,3 +87,13 @@ export function humanise(key) {
 export function formatCount(n, singular) {
   return `${n} ${singular}${n === 1 ? "" : "s"}`;
 }
+
+/** Render an ISO date string as "1 March 2026" — the blog's publish date. */
+export function formatDate(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-NG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}

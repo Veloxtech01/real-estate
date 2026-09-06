@@ -101,6 +101,41 @@ export async function featureProperty(id, isFeatured) {
   return data.data.property;
 }
 
+/** The blog table. Includes drafts, and soft-deleted rows when asked. Administrator only. */
+export async function getBlogPosts(params = {}) {
+  const { data } = await apiClient.get("/admin/blog", { params });
+  return data.data;
+}
+
+/** One post, for the editor. Administrator only. */
+export async function getBlogPost(id) {
+  const { data } = await apiClient.get(`/admin/blog/${id}`);
+  return data.data.post;
+}
+
+/** Create. The server generates the slug. */
+export async function createBlogPost(body) {
+  const { data } = await apiClient.post("/admin/blog", body);
+  return data.data.post;
+}
+
+/** Update in place. */
+export async function updateBlogPost(id, body) {
+  const { data } = await apiClient.patch(`/admin/blog/${id}`, body);
+  return data.data.post;
+}
+
+/** Soft delete — reversible via restoreBlogPost. */
+export async function deleteBlogPost(id) {
+  await apiClient.delete(`/admin/blog/${id}`);
+}
+
+/** Undo a soft delete. */
+export async function restoreBlogPost(id) {
+  const { data } = await apiClient.post(`/admin/blog/${id}/restore`);
+  return data.data.post;
+}
+
 /** The enquiry inbox. `params` is the filter object; axios serialises arrays. */
 export async function getEnquiries(params = {}) {
   const { data } = await apiClient.get("/admin/enquiries", { params });

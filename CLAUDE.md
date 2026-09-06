@@ -161,9 +161,17 @@ Two-package repo, MERN-family stack:
 >   never a hard delete — `Property`/`Enquiry`/`Viewing`/`Testimonial` all reference an
 >   agent by id. An administrator cannot deactivate or demote their own account. The
 >   initial password is administrator-typed; there is no email invite/reset flow.
-> - **Not built:** blog editor, settings admin, the §4.3 daily digest — plus
->   neighbourhood pages and blog on the frontend.
-> - 277/277 backend tests and 159/159 frontend tests pass; both packages lint clean.
+> - **Blog built** — admin editor at `/admin/blog` (administrator only: create, edit,
+>   publish, soft-delete/restore `blogPostModel` records) plus the public `/blog` and
+>   `/blog/[slug]` pages. `GET /api/blog` · `GET /api/blog/:slug` (published-only,
+>   404 parity with drafts/deleted, same as properties/agents) and
+>   `/api/admin/blog/*` (§7 administrator-only, no ownership scoping). Post bodies
+>   are Markdown, rendered on the frontend with **`react-markdown`** (new
+>   dependency — never raw HTML). `locations` cross-linking and category/tag archive
+>   pages are deferred — see the design spec.
+> - **Not built:** settings admin, the §4.3 daily digest — plus neighbourhood pages
+>   on the frontend.
+> - 292/292 backend tests and 174/174 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -206,6 +214,7 @@ file wins**; the scope doc's product requirements otherwise still apply.
 | Animation | `motion` (Framer Motion)                 | **Default animation library** — use for all animations                                                                                                                                                                                                                                              |
 | Charts    | `recharts` 3                             | Default chart library — add when a chart is actually needed (e.g. admin search analytics, §5.7 of the scope doc)                                                                                                                                                                                    |
 | Maps      | Mapbox or Leaflet + OpenStreetMap        | Per scope doc §10 — avoid Google Maps' dollar-denominated per-view billing                                                                                                                                                                                                                          |
+| Markdown  | `react-markdown` 10                      | Blog post bodies only. Renders to React elements, never raw HTML — no separate sanitizer needed                                                                                                                                                                                                     |
 | Tests     | `vitest` 4 + Testing Library + jsdom     | Config is [frontend/vitest.config.mjs](frontend/vitest.config.mjs) — **`.mjs`, not `.js`**, because this package isn't `"type": "module"` and Vite's native config loader warns otherwise. Vitest does not run the Next.js compiler, so server components/routing/SSR aren't covered by these tests |
 
 > **If `react-router-dom` was previously pinned for security reasons in a sibling
@@ -558,6 +567,7 @@ tests/          vitest + supertest + mongodb-memory-server
 | GET    | `/api/taxonomy`                           | Grouped by category for the filter panel                                                                                                                                            |
 | GET    | `/api/agents` · `/api/agents/:slug`       | Public team roster and profile pages (§3); `isPublic && isActive` only                                                                                                              |
 | GET    | `/api/testimonials`                       | Curated client feedback (§3), published + ordered only; `?limit=`                                                                                                                   |
+| GET    | `/api/blog` · `/api/blog/:slug`           | Blog index + post (§4.1), published-only, 404 parity with drafts/deleted; `?page&limit`                                                                                             |
 | GET    | `/api/filters`                            | One call for all filter controls, incl. real price bounds                                                                                                                           |
 | GET    | `/api/settings`                           | Curated public projection — never the AI spend cap or analytics ids                                                                                                                 |
 | POST   | `/api/enquiries`                          | Lead capture, `strictLimiter`                                                                                                                                                       |
@@ -616,9 +626,13 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 | PATCH/DELETE | `/api/admin/properties/:id`            | Update; DELETE is a **soft** delete                                                |
 | POST         | `/api/admin/properties/:id/restore`    | Undo a soft delete                                                                 |
 | POST         | `/api/admin/properties/:id/feature`    | **Administrator only**                                                             |
-| GET          | `/api/admin/reference`                 | Editor vocabulary: enums, rent rules, land-unit factors, areas, taxonomy, staff, `staffRoles` |
+| GET          | `/api/admin/reference`                 | Editor vocabulary: enums, rent rules, land-unit factors, areas, taxonomy, `staffRoles`, and (administrators only) the active roster as `agents` |
 | GET/POST     | `/api/admin/staff`                     | **Administrator only.** Full roster incl. inactive / create a staff account        |
 | GET/PATCH    | `/api/admin/staff/:id`                 | **Administrator only.** One account / update, deactivate, reset password          |
+| GET/POST     | `/api/admin/blog`                      | **Administrator only.** Table (drafts + deleted) and create                       |
+| GET          | `/api/admin/blog/:id`                  | **Administrator only.** One post, for the editor                                  |
+| PATCH/DELETE | `/api/admin/blog/:id`                  | **Administrator only.** Update; DELETE is a **soft** delete                       |
+| POST         | `/api/admin/blog/:id/restore`          | **Administrator only.** Undo a soft delete                                        |
 | POST         | `/api/admin/properties/:id/media/signature` | Scoped Cloudinary upload signature, `strictLimiter`                          |
 | POST         | `/api/admin/properties/:id/media`      | Register an uploaded asset — body carries `publicId` (+ `alt`) and nothing else    |
 | PATCH        | `/api/admin/properties/:id/media/order` | Reorder; `ids` must be a **full permutation**                                    |
@@ -647,6 +661,28 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
   sharing a name get `-2`, `-3`, … appended.
 - The admin list (`GET /api/admin/staff`) deliberately includes inactive accounts —
   the public `/api/agents` roster still excludes them; don't loosen that one.
+
+**Blog management rules:**
+
+- **Administrator only, no ownership scoping** — unlike listings and leads, §7's role
+  table lists blog under Administrator, not Agent, so `authorizeRole("administrator")`
+  gates the whole `/api/admin/blog` router rather than a per-caller query filter.
+- **Soft delete, not hard**, same reasoning as Property: a post's URL may be linked
+  from elsewhere. `DELETE` forces `publicationState` back to `draft`; `restore` only
+  clears `deletedAt` and does **not** re-publish.
+- **`slug` is always server-generated** from `title`, with a `-2`, `-3`, … suffix on
+  collision (same inline pattern as `uniqueAgentSlug`) — never accepted from the body.
+- **`publishedAt` is stamped once**, by the model's own `pre("save")` hook — an
+  unrelated edit after publishing must not move it.
+- **Post bodies are Markdown, rendered with `react-markdown` on the frontend** — never
+  `dangerouslySetInnerHTML`. A compromised or careless admin account can write
+  Markdown but not inject a script through it.
+- **`categories`/`tags` are free-form strings**, not a taxonomy reference — unlike
+  Property's checkbox-driven `tags`, they don't gate any search filter and aren't
+  whitelist-validated.
+- **`locations` cross-linking is deferred** — the schema field exists but is not
+  writable through this API; neighbourhood pages don't exist yet either, so there is
+  nothing to cross-link to.
 
 **Lead operation rules:**
 

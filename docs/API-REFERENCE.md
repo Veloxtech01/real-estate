@@ -234,6 +234,24 @@ homepage's `Testimonials` component renders nothing until at least one is curate
 
 ---
 
+## `GET /api/blog` · `GET /api/blog/:slug`
+
+Public blog index and post pages (§4.1). Published + non-deleted only — a draft, a
+soft-deleted post, and an unknown slug all 404 identically.
+
+- List: `{ "posts": [{ "_id", "title", "slug", "excerpt", "coverImage", "categories",
+  "tags", "author": { "_id", "name", "slug", "photo", "position", "isPublic",
+  "isActive" } | null, "publishedAt" }], "pagination": { "page", "limit", "total",
+  "pages" } }`. `?page=` and `?limit=` (default 9, capped at 24).
+- Detail adds `body` (Markdown source — rendered with `react-markdown` on the
+  frontend, never `dangerouslySetInnerHTML`), `metaTitle`, `metaDescription`,
+  `ogImage`, `updatedAt`.
+- **Only link to `/team/:slug` when `author.isPublic && author.isActive`** — an
+  author can reference a staff member who was later made private or deactivated, and
+  the profile page would 404 for that slug just like `/api/agents/:slug` does.
+
+---
+
 ## `GET /api/settings` — site chrome and theme
 
 ```jsonc
@@ -502,6 +520,52 @@ individual routes.
   sharing a name get `-2`, `-3`, … appended.
 - `staffRoles` (the `administrator`/`agent` enum) is served from `GET /api/admin/reference`
   for the role `<select>` — not mirrored in the frontend.
+
+---
+
+## Blog management (admin, §4.2/§7)
+
+**Administrator only** — the whole `/api/admin/blog` router 403s an agent, same as
+staff management, per §7's role table (blog is listed under Administrator, not Agent).
+
+```jsonc
+// GET /api/admin/blog — table: drafts + soft-deleted included
+// Query: q, publicationState, includeDeleted, page, limit
+{ "posts": [{ "_id", "title", "slug", "publicationState", "author": { "_id", "name",
+  "slug" } | null, "updatedAt", "publishedAt", "deletedAt" }],
+  "pagination": { "page", "limit", "total", "pages" } }
+
+// GET /api/admin/blog/:id — full record, for the editor
+{ "post": { ...every field, "author" populated as above } }
+
+// POST /api/admin/blog
+// Body: { title, excerpt?, body, coverImage?, author?, categories?, tags?,
+//         metaTitle?, metaDescription?, ogImage?, publicationState? }
+// 201 { "post": { ...full record, slug auto-generated from title } }
+
+// PATCH /api/admin/blog/:id
+// Body: any create field
+// 200 { "post": { ...full record } }
+
+// DELETE /api/admin/blog/:id — soft delete; 200 { "data": null }
+// POST /api/admin/blog/:id/restore — undo; 200 { "post": { ...full record } }
+```
+
+- **Soft delete, not hard** — same reasoning as Property: a post's URL may be linked
+  from elsewhere. `DELETE` sets `deletedAt` and forces `publicationState` back to
+  `draft`; `restore` only clears `deletedAt`, it does not re-publish.
+- **`slug` is always server-generated** from `title`, with a `-2`, `-3`, … suffix on
+  collision — never accepted from the request body.
+- **`publishedAt` is stamped once**, the first time a post becomes `published` — an
+  unrelated edit afterward does not move it, so the blog index doesn't reorder itself
+  on a typo fix.
+- `author` accepts any active staff `_id` from `GET /api/admin/reference`'s `agents`
+  list, or `null`/omitted for no author. There is no ownership scoping — any
+  administrator can assign any staff member as author.
+- `categories`/`tags` are free-form string arrays, not a taxonomy reference — they
+  don't gate any search filter, unlike Property's taxonomy-backed `tags`.
+- `locations` exists on the model (cross-linking to a `Location`) but is not
+  writable through this API yet — deferred until neighbourhood pages exist to link to.
 
 ---
 
@@ -779,9 +843,9 @@ keeps working.
 
 ## Not built yet
 
-No endpoints exist for: staff management, blog posts, pages, or settings updates. The
-**models exist** for all of them — only the routes and controllers are missing. Don't
-build admin UI against these until the endpoints are written.
+No endpoints exist for: pages (site copy) or settings updates. The **models exist**
+for both — only the routes and controllers are missing. Don't build admin UI against
+these until the endpoints are written.
 
 The §4.3 **daily enquiry digest** is also unbuilt: it needs a scheduler decision
 (in-process cron vs. a platform cron hitting a protected route) that is really a

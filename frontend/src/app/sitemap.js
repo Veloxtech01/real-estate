@@ -1,4 +1,4 @@
-import { getProperties } from "@/lib/api/server";
+import { getProperties, getBlogPosts } from "@/lib/api/server";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -13,6 +13,7 @@ export default async function sitemap() {
   const staticRoutes = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/properties`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/blog`, changeFrequency: "daily", priority: 0.7 },
   ];
 
   const listings = [];
@@ -34,5 +35,25 @@ export default async function sitemap() {
     page += 1;
   } while (page <= totalPages);
 
-  return [...staticRoutes, ...listings];
+  // Blog posts drive organic search (§4.1) just as much as listings do, so they
+  // get the same paginated walk rather than being left out like Team/About.
+  const posts = [];
+  let postPage = 1;
+  let postTotalPages = 1;
+
+  do {
+    const data = await getBlogPosts({ page: postPage, limit: 24 });
+    for (const post of data?.posts ?? []) {
+      posts.push({
+        url: `${SITE_URL}/blog/${post.slug}`,
+        lastModified: post.publishedAt,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
+    }
+    postTotalPages = data?.pagination?.pages ?? 1;
+    postPage += 1;
+  } while (postPage <= postTotalPages);
+
+  return [...staticRoutes, ...listings, ...posts];
 }

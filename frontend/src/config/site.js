@@ -53,6 +53,7 @@ const siteConfig = {
     { href: "/properties", label: "All listings" },
     { href: "/services", label: "Services" },
     { href: "/team", label: "Our team" },
+    { href: "/blog", label: "Blog" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ],

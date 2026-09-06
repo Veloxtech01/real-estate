@@ -6,6 +6,7 @@ import healthRoutes from "./routes/healthRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
 import agentRoutes from "./routes/agentRoutes.js";
 import testimonialRoutes from "./routes/testimonialRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
 import {
   locationRouter,
   taxonomyRouter,
@@ -20,6 +21,7 @@ import adminEnquiryRoutes from "./routes/adminEnquiryRoutes.js";
 import adminViewingRoutes from "./routes/adminViewingRoutes.js";
 import adminReferenceRoutes from "./routes/adminReferenceRoutes.js";
 import adminStaffRoutes from "./routes/adminStaffRoutes.js";
+import adminBlogRoutes from "./routes/adminBlogRoutes.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -69,6 +71,7 @@ export function createApp() {
   app.use("/api/taxonomy", taxonomyRouter);
   app.use("/api/agents", agentRoutes);
   app.use("/api/testimonials", testimonialRoutes);
+  app.use("/api/blog", blogRoutes);
   app.use("/api/filters", filterRouter);
   app.use("/api/settings", settingsRouter);
 
@@ -90,6 +93,9 @@ export function createApp() {
 
   // Staff management (§7) — administrator-only CRUD over agentModel.
   app.use("/api/admin/staff", adminStaffRoutes);
+
+  // Blog editor (§4.2, §7) — administrator-only CRUD over blogPostModel.
+  app.use("/api/admin/blog", adminBlogRoutes);
 
   // Shared editor vocabulary — enums, the statutory rent table, the staff roster.
   app.use("/api/admin/reference", adminReferenceRoutes);

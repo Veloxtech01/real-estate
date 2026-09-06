@@ -156,9 +156,14 @@ Two-package repo, MERN-family stack:
 >   `content/home.js`. No demo testimonials are seeded — see the design spec for why —
 >   so the rail renders nothing on a fresh copy until real ones are curated by a direct
 >   database write.
-> - **Not built:** staff management, blog editor, settings admin, the
->   §4.3 daily digest — plus neighbourhood pages and blog on the frontend.
-> - 262/262 backend tests and 149/149 frontend tests pass; both packages lint clean.
+> - **Staff management built** — `/admin/staff` (administrator only): create, edit,
+>   deactivate/reactivate and assign roles for `agentModel` accounts. Deactivate-only,
+>   never a hard delete — `Property`/`Enquiry`/`Viewing`/`Testimonial` all reference an
+>   agent by id. An administrator cannot deactivate or demote their own account. The
+>   initial password is administrator-typed; there is no email invite/reset flow.
+> - **Not built:** blog editor, settings admin, the §4.3 daily digest — plus
+>   neighbourhood pages and blog on the frontend.
+> - 277/277 backend tests and 159/159 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -426,7 +431,9 @@ Vite-based sibling project — Next.js needs its own v4 integration.
 - **Listing deletion is soft and reversible**, unlike a lead's, which is a permanent NDPA
   erasure. The confirmation wording has to say which one it is. **Image deletion is a
   third case** — it destroys the Cloudinary asset, so it is permanent like a lead's, and
-  `MediaManager`'s dialog says so.
+  `MediaManager`'s dialog says so. **Staff deactivation is a fourth** — always
+  reversible (reactivate any time), never a delete; `StaffTable`'s confirmation wording
+  says "deactivate," never "delete."
 - **The registration endpoint believes nothing the client sends but `publicId` and `alt`.**
   The browser uploads straight to Cloudinary, so the API never sees the bytes; it calls
   `cloudinary.api.resource()` and reads url, dimensions and byte count from *Cloudinary's*
@@ -609,7 +616,9 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 | PATCH/DELETE | `/api/admin/properties/:id`            | Update; DELETE is a **soft** delete                                                |
 | POST         | `/api/admin/properties/:id/restore`    | Undo a soft delete                                                                 |
 | POST         | `/api/admin/properties/:id/feature`    | **Administrator only**                                                             |
-| GET          | `/api/admin/reference`                 | Editor vocabulary: enums, rent rules, land-unit factors, areas, taxonomy, staff    |
+| GET          | `/api/admin/reference`                 | Editor vocabulary: enums, rent rules, land-unit factors, areas, taxonomy, staff, `staffRoles` |
+| GET/POST     | `/api/admin/staff`                     | **Administrator only.** Full roster incl. inactive / create a staff account        |
+| GET/PATCH    | `/api/admin/staff/:id`                 | **Administrator only.** One account / update, deactivate, reset password          |
 | POST         | `/api/admin/properties/:id/media/signature` | Scoped Cloudinary upload signature, `strictLimiter`                          |
 | POST         | `/api/admin/properties/:id/media`      | Register an uploaded asset — body carries `publicId` (+ `alt`) and nothing else    |
 | PATCH        | `/api/admin/properties/:id/media/order` | Reorder; `ids` must be a **full permutation**                                    |
@@ -622,6 +631,22 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 | GET          | `/api/admin/viewings`                  | Diary, soonest-first; `upcoming=true` hides the past                               |
 | GET/PATCH    | `/api/admin/viewings/:id`              | Detail incl. `notes`; PATCH drives the state machine                               |
 | DELETE       | `/api/admin/viewings/:id`              | **Administrator only**, and a **hard** delete                                      |
+
+**Staff management rules:**
+
+- **No hard delete of an `Agent`, ever.** `Property.agent`, `Enquiry.agent`,
+  `Viewing.agent` and `Testimonial.agent` all reference the account; deleting it would
+  orphan that history. "Remove a staff member" is `PATCH { isActive: false }`, which
+  `login` already checks.
+- **An administrator cannot deactivate or demote their own account** — 400, not a
+  silent no-op. The one guard against a single-admin agency locking itself out.
+- The initial password is administrator-typed (≥8 characters, same rule as
+  `change-password`) — there is no email invite or password-reset flow in this project.
+- Renaming a staff member re-slugs their public `/team/[slug]` profile URL, the same
+  behaviour `updateProperty` already has for a retitled listing. Two staff members
+  sharing a name get `-2`, `-3`, … appended.
+- The admin list (`GET /api/admin/staff`) deliberately includes inactive accounts —
+  the public `/api/agents` roster still excludes them; don't loosen that one.
 
 **Lead operation rules:**
 

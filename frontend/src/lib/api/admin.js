@@ -36,6 +36,30 @@ export async function getAdminReference() {
   return data.data;
 }
 
+/** The full staff roster, active and inactive. Administrator only. */
+export async function getStaff() {
+  const { data } = await apiClient.get("/admin/staff");
+  return data.data;
+}
+
+/** One staff account, for the edit form. Administrator only. */
+export async function getStaffMember(id) {
+  const { data } = await apiClient.get(`/admin/staff/${id}`);
+  return data.data.staffMember;
+}
+
+/** Create a staff account. Administrator only. */
+export async function createStaffMember(body) {
+  const { data } = await apiClient.post("/admin/staff", body);
+  return data.data.staffMember;
+}
+
+/** Update in place — also how a deactivate/reactivate or password reset is sent. */
+export async function updateStaffMember(id, body) {
+  const { data } = await apiClient.patch(`/admin/staff/${id}`, body);
+  return data.data.staffMember;
+}
+
 /** The listing table. Includes drafts, and soft-deleted rows when asked. */
 export async function getProperties(params = {}) {
   const { data } = await apiClient.get("/admin/properties", { params });

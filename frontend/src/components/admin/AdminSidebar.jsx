@@ -3,12 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiGrid, FiInbox, FiCalendar, FiHome, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import { FiGrid, FiInbox, FiCalendar, FiHome, FiUsers, FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import siteConfig from "@/config/site";
 import { useAdminSession } from "@/components/admin/AdminSessionProvider";
 
 /**
- * Admin navigation.
+ * Admin navigation. "Staff" is appended in the component body rather than listed
+ * here, since it's shown only to administrators — courtesy, not security, matching
+ * every other role-gated control in this panel; the API's authorizeRole is the
+ * actual gate.
  */
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: FiGrid },
@@ -22,9 +25,14 @@ export default function AdminSidebar() {
   const { user, signOut } = useAdminSession();
   const [open, setOpen] = useState(false);
 
+  const navItems =
+    user.role === "administrator"
+      ? [...NAV, { href: "/admin/staff", label: "Staff", icon: FiUsers }]
+      : NAV;
+
   const nav = (
     <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
+      {navItems.map((item) => {
         const Icon = item.icon;
         // Exact match for the dashboard; prefix match for its children, so
         // /admin/enquiries?id=x still highlights Enquiries.

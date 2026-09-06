@@ -339,6 +339,8 @@ is unreadable from JS. The shared Axios instance must set `withCredentials: true
 | POST | `/api/admin/properties/:id/restore` | Undo soft delete |
 | POST | `/api/admin/properties/:id/feature` | **Administrator only** (403 for agents) |
 | GET | `/api/admin/reference` | Every enum, the rent-rule table, land-unit factors, areas, taxonomy, staff |
+| GET/POST | `/api/admin/staff` | **Administrator only.** Full roster incl. inactive / create a staff account |
+| GET/PATCH | `/api/admin/staff/:id` | **Administrator only.** One account / update, deactivate, reset password |
 
 - `role` is `administrator` | `agent`. Agents see and edit **only their own** listings.
 - An agent with `canPublish: false` gets **403** when setting `publicationState:
@@ -461,6 +463,45 @@ so the form can never offer a value the schema enums reject.
 - A 400 returns `details` keyed by **dotted field path** (`"rent.agencyFeePct":
   "Agency fee cannot exceed 10% in Lagos"`), which maps directly onto react-hook-form
   field names.
+
+---
+
+## Staff management (admin, §7)
+
+**Administrator only** — the whole `/api/admin/staff` router 403s an agent, not just
+individual routes.
+
+```jsonc
+// GET /api/admin/staff — full roster, active AND inactive (unlike public /api/agents)
+{ "staff": [{ "_id", "name", "slug", "email", "phone", "whatsapp", "role", "canPublish",
+  "position", "bio", "photo", "areas": [{ "_id", "name", "slug" }], "registrationNumber",
+  "isActive", "isPublic" }] }
+
+// GET /api/admin/staff/:id
+{ "staffMember": { ...same shape } }
+
+// POST /api/admin/staff
+// Body: { name, email, password, role, phone?, whatsapp?, position?, bio?, photo?,
+//         areas?, registrationNumber?, canPublish?, isPublic? }
+// 201 { "staffMember": { ...same shape, never "password" } }
+
+// PATCH /api/admin/staff/:id
+// Body: any create field, plus password? (reset — omit to keep current) and isActive?
+// 200 { "staffMember": { ...same shape } }
+```
+
+- **No hard delete.** Removing a staff member means `PATCH { isActive: false }` —
+  `Property.agent`, `Enquiry.agent`, `Viewing.agent` and `Testimonial.agent` all
+  reference the account, so deleting it would orphan that history.
+- **An administrator cannot deactivate or demote their own account** — 400, not a
+  silent no-op. The only guard against a single-admin agency locking itself out.
+- The initial password is administrator-typed (≥8 characters, same rule as
+  `change-password`) — there is no email invite or reset-token flow in this project.
+- Renaming a staff member re-slugs their public `/team/[slug]` profile URL, same
+  behaviour `updateProperty` already has for a retitled listing. Two staff members
+  sharing a name get `-2`, `-3`, … appended.
+- `staffRoles` (the `administrator`/`agent` enum) is served from `GET /api/admin/reference`
+  for the role `<select>` — not mirrored in the frontend.
 
 ---
 

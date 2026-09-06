@@ -20,6 +20,7 @@ import {
   ROAD_CONDITIONS,
   LAND_UNITS_IN_SQM,
   STATE_RENT_RULES,
+  STAFF_ROLES,
 } from "../utils/constants.js";
 
 /**
@@ -273,6 +274,10 @@ export async function getAdminReference(req, res) {
       // The whole table, including its default entry, so the form can warn about a
       // Lagos agency fee before paying for the round trip. The server still decides.
       stateRentRules: STATE_RENT_RULES,
+
+      // The staff form's role <select> reads this rather than hardcoding a copy —
+      // same "enum lists are never mirrored" rule as every other admin dropdown.
+      staffRoles: STAFF_ROLES,
 
       locations,
       taxonomy,

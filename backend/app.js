@@ -19,6 +19,7 @@ import adminPropertyRoutes from "./routes/adminPropertyRoutes.js";
 import adminEnquiryRoutes from "./routes/adminEnquiryRoutes.js";
 import adminViewingRoutes from "./routes/adminViewingRoutes.js";
 import adminReferenceRoutes from "./routes/adminReferenceRoutes.js";
+import adminStaffRoutes from "./routes/adminStaffRoutes.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -86,6 +87,9 @@ export function createApp() {
   app.use("/api/admin/properties", adminPropertyRoutes);
   app.use("/api/admin/enquiries", adminEnquiryRoutes);
   app.use("/api/admin/viewings", adminViewingRoutes);
+
+  // Staff management (§7) — administrator-only CRUD over agentModel.
+  app.use("/api/admin/staff", adminStaffRoutes);
 
   // Shared editor vocabulary — enums, the statutory rent table, the staff roster.
   app.use("/api/admin/reference", adminReferenceRoutes);

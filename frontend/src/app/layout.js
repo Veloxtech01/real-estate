@@ -93,7 +93,11 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col">
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly) inject
+          data-gr-* attributes onto <body> before React hydrates. That's a real
+          mismatch React can't avoid, not a bug in this render — see
+          https://react.dev/link/hydration-mismatch. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {/* A client's brand colors, if set in /admin/settings — pure CSS, no JS, no
             hydration mismatch risk. Omitted entirely when no color has been set. */}
         {themeOverrideCss && <style>{themeOverrideCss}</style>}

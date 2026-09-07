@@ -49,7 +49,16 @@ apiClient.interceptors.response.use(
       typeof window !== "undefined" &&
       !window.location.pathname.startsWith("/admin/login")
     ) {
-      window.location.href = "/admin/login";
+      // The stale `re_token` cookie must be cleared before leaving, not just after —
+      // proxy.js only checks cookie *presence*, so if it's still set, /admin/login
+      // immediately bounces back to /admin, which 401s again: an infinite redirect
+      // loop. /auth/logout needs no auth, so this is safe to fire from any 401.
+      apiClient
+        .post("/auth/logout")
+        .catch(() => {})
+        .finally(() => {
+          window.location.href = "/admin/login";
+        });
     }
 
     return Promise.reject(normalised);

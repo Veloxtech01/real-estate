@@ -44,8 +44,12 @@ export function AdminSessionProvider({ children }) {
     } catch {
       // Any failure here means no usable session — expired, signed out elsewhere, or
       // the account was deactivated. The specific reason isn't actionable for the user.
+      // Don't redirect here: getMe() failing is a 401, and the Axios interceptor
+      // (lib/api/client.js) already redirects to /admin/login for every 401 — but only
+      // after clearing the stale cookie first. Redirecting here too would race that
+      // cleanup and send the browser to /admin/login while the cookie is still set,
+      // which proxy.js bounces straight back to /admin, looping.
       setUser(null);
-      router.replace("/admin/login");
     } finally {
       setLoading(false);
     }

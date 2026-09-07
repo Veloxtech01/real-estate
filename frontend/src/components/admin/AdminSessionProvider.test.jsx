@@ -52,7 +52,11 @@ describe("AdminSessionProvider", () => {
     expect(screen.queryByText(/Signed in as/)).not.toBeInTheDocument();
   });
 
-  it("redirects to login when the session call fails", async () => {
+  it("clears the session (without redirecting itself) when the session call fails", async () => {
+    // Redirect-on-401 is centralized in the Axios interceptor (lib/api/client.js),
+    // which clears the stale cookie first. If the provider also redirected here, the
+    // two would race and could send the browser to /admin/login before the cookie is
+    // cleared — which proxy.js bounces straight back to /admin, looping.
     const failure = new Error("Authentication required");
     failure.status = 401;
     getMe.mockRejectedValue(failure);
@@ -63,7 +67,7 @@ describe("AdminSessionProvider", () => {
       </AdminSessionProvider>,
     );
 
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/admin/login"));
-    expect(screen.queryByText(/Signed in as/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/Signed in as/)).not.toBeInTheDocument());
+    expect(replace).not.toHaveBeenCalled();
   });
 });

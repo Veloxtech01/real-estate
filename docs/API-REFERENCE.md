@@ -280,6 +280,71 @@ The AI spend cap, current spend and analytics IDs are deliberately **not** expos
 
 ---
 
+## `GET`/`PATCH /api/admin/settings` — settings admin
+
+Administrator-only (`authorizeRole("administrator")` on the whole router). No
+POST/DELETE — the singleton always exists via `Settings.get()`.
+
+`GET` sends the **full** document, unlike the curated public projection above —
+including `aiSearch.currentSpendUsd`/`monthlySpendCapUsd`, `ndpcRegistrationNumber`,
+`googleAnalyticsId`, `googleSearchConsoleId`:
+
+```jsonc
+{ "success": true, "data": { "settings": {
+  "agencyName": "Your Agency Name", "tagline": "...",
+  "lasreraNumber": null, "registrationNumbers": [],
+  "email": null, "phone": null, "whatsapp": null, "address": null,
+  "coordinates": null, "officeHours": [], "socialLinks": {},
+  "theme": {
+    "colors": {
+      "ink": "#0d1b2a", "ink-deep": "...", "ink-raised": "...", "ink-soft": "...",
+      "accent": "#c6a15b", "accent-text": "...", "accent-hover": "...",
+      "surface": "...", "surface-raised": "..."
+    },
+    "fontHeading": null, "fontBody": null,
+    "logoUrl": null, "logoDarkUrl": null, "faviconUrl": null,
+    "homepageVariant": "default"
+  },
+  "footerText": null,
+  "aiSearch": { "enabled": false, "monthlySpendCapUsd": 0, "currentSpendUsd": 0, "timeoutMs": 2000 },
+  "listingDisclaimer": null,
+  "ndpcRegistrationNumber": null,
+  "googleAnalyticsId": null, "googleSearchConsoleId": null
+} } }
+```
+
+`PATCH` body: any subset of the flat writable fields (`agencyName`, `tagline`,
+`lasreraNumber`, `registrationNumbers`, `email`, `phone`, `whatsapp`, `address`,
+`coordinates`, `officeHours`, `socialLinks`, `footerText`, `listingDisclaimer`,
+`ndpcRegistrationNumber`, `googleAnalyticsId`, `googleSearchConsoleId`), plus nested
+`theme` (`colors` restricted to the 9 core tokens above, `logoUrl`, `logoDarkUrl`,
+`faviconUrl`, `fontHeading`, `fontBody` — **not** `homepageVariant`, no UI writes it)
+and `aiSearch` (`enabled`, `monthlySpendCapUsd`, `timeoutMs` — **never**
+`currentSpendUsd`, silently dropped even if sent). Responds `{ success: true, data: {
+settings } }` with the full updated document, same shape as GET.
+
+`theme`/`aiSearch` are **deep-merged**, never replaced — a `{ theme: { colors: {
+accent: "#..." } } }` PATCH leaves `fontHeading` and every other color untouched. A
+400 collects field errors under `details`, dotted-path (`"theme.colors.accent"`,
+`"aiSearch.monthlySpendCapUsd"`) so the admin form can map each onto its input;
+unlisted fields (`key`, `_id`, `createdAt`, `aiSearch.currentSpendUsd`) are silently
+dropped, not errors.
+
+**Saving a theme color takes effect immediately, site-wide.** The admin panel calls
+`POST /api/revalidate` after a successful save, busting the 1-hour public-settings
+cache; `RootLayout` (a Server Component) fetches `Settings` and injects an inline
+`<style>` override for whichever of the 9 core tokens are set, so both the public
+site and the admin chrome repaint on next load — no separate propagation step.
+
+**Logo/favicon and `fontHeading`/`fontBody` are stored but inert.** The form accepts
+and persists them; nothing renders them yet. Swapping the text logo for an uploaded
+image affects the static `favicon.ico` convention too, and swapping fonts at runtime
+needs a different loading strategy than `next/font`'s build-time self-hosting — both
+are deliberately out of scope for this pass. Don't assume either is wired just because
+the field exists in the form.
+
+---
+
 ## `POST /api/search` — natural-language search
 
 Body: `{ "q": "3 bedroom flat in Lekki under 100m", "page": 1, "limit": 12, "sort": "newest" }`
@@ -843,9 +908,9 @@ keeps working.
 
 ## Not built yet
 
-No endpoints exist for: pages (site copy) or settings updates. The **models exist**
-for both — only the routes and controllers are missing. Don't build admin UI against
-these until the endpoints are written.
+No endpoints exist for pages (site copy). The **model exists** — only the routes and
+controllers are missing. Don't build admin UI against it until the endpoints are
+written. (Settings updates now exist — see `GET`/`PATCH /api/admin/settings` above.)
 
 The §4.3 **daily enquiry digest** is also unbuilt: it needs a scheduler decision
 (in-process cron vs. a platform cron hitting a protected route) that is really a

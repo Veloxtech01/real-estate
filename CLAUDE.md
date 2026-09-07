@@ -169,9 +169,18 @@ Two-package repo, MERN-family stack:
 >   are Markdown, rendered on the frontend with **`react-markdown`** (new
 >   dependency — never raw HTML). `locations` cross-linking and category/tag archive
 >   pages are deferred — see the design spec.
-> - **Not built:** settings admin, the §4.3 daily digest — plus neighbourhood pages
->   on the frontend.
-> - 292/292 backend tests and 174/174 frontend tests pass; both packages lint clean.
+> - **Settings admin built** — `/admin/settings` (administrator only), one form over
+>   the `settingsModel` singleton: agency identity, contact/social/office hours,
+>   branding (9 core color tokens + font/logo fields), AI search kill switch/spend
+>   cap/timeout, compliance and analytics ids. `GET/PATCH /api/admin/settings`
+>   deep-merges `theme`/`aiSearch` so a partial update never clobbers the rest;
+>   `aiSearch.currentSpendUsd` is always read-only. Saving a theme color busts the
+>   public settings cache (`POST /api/revalidate`) and `RootLayout` injects it live as
+>   an inline `<style>` override — site-wide, admin chrome included. **Logo/favicon and
+>   font (`fontHeading`/`fontBody`) fields are stored but inert** — they need a separate
+>   asset/font-loading change before they render anywhere; the form captions this.
+> - **Not built:** the §4.3 daily digest — plus neighbourhood pages on the frontend.
+> - 305/305 backend tests and 181/181 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -633,6 +642,7 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 | GET          | `/api/admin/blog/:id`                  | **Administrator only.** One post, for the editor                                  |
 | PATCH/DELETE | `/api/admin/blog/:id`                  | **Administrator only.** Update; DELETE is a **soft** delete                       |
 | POST         | `/api/admin/blog/:id/restore`          | **Administrator only.** Undo a soft delete                                        |
+| GET/PATCH    | `/api/admin/settings`                  | **Administrator only.** Full `settingsModel` singleton; `theme`/`aiSearch` deep-merge on PATCH |
 | POST         | `/api/admin/properties/:id/media/signature` | Scoped Cloudinary upload signature, `strictLimiter`                          |
 | POST         | `/api/admin/properties/:id/media`      | Register an uploaded asset — body carries `publicId` (+ `alt`) and nothing else    |
 | PATCH        | `/api/admin/properties/:id/media/order` | Reorder; `ids` must be a **full permutation**                                    |
@@ -717,6 +727,14 @@ if needed and permitted)_ → whitelist validation → same query engine → chi
 - `requireAuth` **re-loads the account on every request** rather than trusting the
   JWT payload — otherwise a deactivated or demoted staff member keeps access until
   the token expires (up to 7 days).
+- **A stale `re_token` cookie must be cleared server-side (`/api/auth/logout`, no
+  auth required) before the frontend redirects to `/admin/login` on a 401** — the
+  Axios interceptor ([client.js](frontend/src/lib/api/client.js)) does this and is the
+  **only** place that redirects on 401. `proxy.js` checks cookie *presence* only, so if
+  anything else (e.g. `AdminSessionProvider`) redirects to `/admin/login` first, without
+  clearing the cookie, `proxy.js` bounces it straight back to `/admin`, which 401s again
+  — an infinite redirect loop that looks like the page re-rendering every second. Don't
+  add a second 401→redirect path.
 - Login returns one generic error for both "wrong password" and "no such account".
   Don't "improve" this: distinguishing them makes the endpoint an account-enumeration
   oracle.

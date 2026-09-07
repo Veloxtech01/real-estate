@@ -39,3 +39,6 @@ Thumbs.db
 
 # Deploy platform
 .vercel
+
+# Playwright MCP verification scratch (browser snapshots/screenshots, not project content)
+.playwright-mcp/

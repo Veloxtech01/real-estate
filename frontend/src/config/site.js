@@ -58,12 +58,10 @@ const siteConfig = {
     { href: "/contact", label: "Contact" },
   ],
 
-  // Seller/landlord CTA destination, used by the header and the homepage CTA band.
-  // WhatsApp rather than a page: the §3 "list your property" route does not exist yet,
-  // and WhatsApp is the channel this market actually replies on. Swap this for the
-  // route when that slice lands — nothing else needs editing.
-  listPropertyHref:
-    "https://wa.me/2348000000000?text=I%20have%20a%20property%20to%20list",
+  // Seller/landlord CTA destination, used by the header, mobile nav and the homepage
+  // CTA band — all three already read this constant, so nothing else needed editing
+  // when the §3 "list your property" page shipped.
+  listPropertyHref: "/list-your-property",
 
   /*
    * Footer link columns.
@@ -101,6 +99,7 @@ const siteConfig = {
         { href: "/about", label: "About us" },
         { href: "/services", label: "Services" },
         { href: "/team", label: "Meet the team" },
+        { href: "/list-your-property", label: "List your property" },
         { href: "/contact", label: "Contact" },
       ],
     },

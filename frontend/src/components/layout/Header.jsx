@@ -55,8 +55,7 @@ export default function Header() {
             <FiPhone size={16} className="text-accent" aria-hidden="true" />
             {siteConfig.phone}
           </a>
-          {/* Seller-side CTA. Points at the contact route until the §3 "list your
-              property" page exists — a wrong destination beats a 404. */}
+          {/* Seller-side CTA — routes to the §3 "list your property" page. */}
           <Button href={siteConfig.listPropertyHref} variant="onDarkOutline">
             List your property
           </Button>

@@ -137,8 +137,7 @@ export default async function HomePage() {
         items={testimonials}
       />
 
-      {/* Seller/landlord CTA — the §3 "list your property" pipeline. Until that page
-          exists this opens WhatsApp, which is still a lead. */}
+      {/* Seller/landlord CTA — routes to the §3 "list your property" page. */}
       <Section tone="light">
         <div className="on-dark relative isolate overflow-hidden rounded-lg bg-ink px-8 py-14 text-center md:px-16 md:py-20">
           {/* Gold wash behind the panel — decorative depth, no contrast dependency. */}
@@ -158,7 +157,7 @@ export default async function HomePage() {
                 {homeContent.cta.action}
                 <FiArrowRight size={16} aria-hidden="true" />
               </Button>
-              {/* Phone kept alongside — WhatsApp is not everyone's channel. */}
+              {/* Phone kept alongside — the page is a form, not everyone wants to type. */}
               <Button
                 href={`tel:${siteConfig.phone}`}
                 variant="onDarkOutline"

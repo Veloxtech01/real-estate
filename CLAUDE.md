@@ -146,11 +146,21 @@ Two-package repo, MERN-family stack:
 >   [backend/scripts/demoImages.js](backend/scripts/demoImages.js) and refreshed by hand
 >   with `node scripts/fetchDemoImages.js` (needs `PEXELS_API_KEY`). **Replace with the
 >   agency's own photography before a client launch** — see `frontend/public/CREDITS.md`.
-> - **Marketing pages built** — `/about`, `/services`, `/team`, `/team/[slug]` and
->   `/contact`, closing the §3 gap. About/Services/Contact copy is hardcoded in
->   `src/content/`, matching `home.js`; Team is backed by a new public
->   `GET /api/agents` · `GET /api/agents/:slug` (public + active profiles only).
->   See the conventions note below before "fixing" this back toward `pageModel`.
+> - **Marketing pages built** — `/about`, `/services`, `/team`, `/team/[slug]`,
+>   `/contact` and `/list-your-property`, closing the §3 gap. About/Services/Contact/
+>   List-your-property copy is hardcoded in `src/content/`, matching `home.js`; Team is
+>   backed by a new public `GET /api/agents` · `GET /api/agents/:slug` (public + active
+>   profiles only). See the conventions note below before "fixing" this back toward
+>   `pageModel`.
+> - **"List your property with us" built** — a frontend-only slice: no backend change,
+>   since `type: "list_property"`/`source: "list_property_page"` were already in
+>   `ENQUIRY_TYPES`/`ENQUIRY_SOURCES` with no writer. `ListPropertyForm` posts through
+>   the same `POST /api/enquiries` every other lead form uses, with structured details
+>   (listing intent, property type, location, bedrooms, expected price/rent) packed
+>   into `requirement` — the first real caller of that field. `location` is free text,
+>   not the locations dropdown, deliberately: a seller's property may be outside current
+>   coverage, which is exactly the lead worth capturing. `siteConfig.listPropertyHref`
+>   now points here instead of a WhatsApp deep link.
 > - **Homepage testimonials built** — `GET /api/testimonials` (published, curator-ordered,
 >   `?limit=`) replaces the fabricated placeholder quotes that used to live in
 >   `content/home.js`. No demo testimonials are seeded — see the design spec for why —
@@ -180,7 +190,7 @@ Two-package repo, MERN-family stack:
 >   font (`fontHeading`/`fontBody`) fields are stored but inert** — they need a separate
 >   asset/font-loading change before they render anywhere; the form captions this.
 > - **Not built:** the §4.3 daily digest — plus neighbourhood pages on the frontend.
-> - 305/305 backend tests and 181/181 frontend tests pass; both packages lint clean.
+> - 305/305 backend tests and 188/188 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -375,7 +385,7 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   Do not simply rename the placeholders — invented client quotes are a misrepresentation.
 - **Footer and nav links only point at routes that exist.** Unbuilt sections are absent,
   not stubbed, and there is no newsletter form because there is no subscribe endpoint.
-  The seller CTA (`siteConfig.listPropertyHref`) opens WhatsApp until the §3 page exists.
+  The seller CTA (`siteConfig.listPropertyHref`) routes to `/list-your-property`.
 - **All demo imagery is placeholder and credited in `frontend/public/CREDITS.md`** —
   `hero-home.jpg` from Unsplash, and the 600 listing photos hotlinked from Pexels via the
   committed catalogue at `backend/scripts/demoImages.js`. Every one of them shows a

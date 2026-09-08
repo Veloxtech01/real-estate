@@ -77,7 +77,8 @@ site that happens to contain listings. Marketing pages added:
 - Staff management: add/remove agents, assign roles
 - Blog editor
 - Site settings: contact details, social links, hours, homepage copy
-- Search analytics — what visitors searched for and what returned nothing (§5.7)
+- Search analytics — what visitors searched for and what returned nothing (§5.7) —
+  **deliberately deferred, see the note at §5.7**
 
 ### 4.3 Notifications
 - New enquiry → email to assigned agent + WhatsApp click-to-chat link to prospect
@@ -160,6 +161,13 @@ An alias table sits between model output and the DB (content work, populated wit
 Every parsed query logged with filters, result count, and enquiry conversion. Produces a
 demand report (areas searched, budgets, dead-end searches) that directly informs stock
 acquisition. Personal data excluded from these logs.
+
+**Deliberate deviation (2026-09-09):** `searchLogModel` is built and already being
+written to, but the admin dashboard over it (the §4.2 bullet) is not — discussed and
+deferred rather than an oversight. Reasoning: AI search is off by default, this is a
+single small agency, and at low query volume a chart adds little a founder can't get
+by reading `searchLogModel` directly in Atlas. Revisit once the site has real visitor
+traffic and someone is actually making stock-acquisition decisions from it.
 
 **Effort:** ~1 week within Phase 1, assuming ordinary filter search exists. The alias
 table (§5.4) is content work, populated with the client during content loading.

@@ -71,9 +71,10 @@ Two-package repo, MERN-family stack:
 /docs       Reference docs (PROJECT-SCOPE.md = scope, API-REFERENCE.md = endpoints)
 ```
 
-> **Status: public site, lead operations, listings management and media upload complete
-> end to end. Content admin is the open gap.** Read the "Not built" entry below
-> before assuming any feature area exists.
+> **Status: public site, lead operations, listings management, media upload, staff
+> management, blog and settings admin all complete end to end.** The only
+> deliberately-deferred piece is the admin search-analytics dashboard. Read the "Not
+> built" entry below before assuming any feature area exists.
 >
 > - `/frontend` — `create-next-app` scaffold: **Next.js 16.3.4 + React 19.2.8**, App
 >   Router, `src/` dir, `@/*` import alias, Tailwind v4 via `@tailwindcss/postcss`.
@@ -208,7 +209,11 @@ Two-package repo, MERN-family stack:
 >   submitted time, a link into `/admin/enquiries?id=`), reusing `sendEmail` from
 >   `emailService.js` — best-effort, never throws. Sends nothing on a day with zero
 >   new enquiries (no "quiet day" heartbeat). Viewings aren't included — they already
->   have their own immediate notifications. This was the last open item in this list.
+>   have their own immediate notifications.
+> - **Not built:** the §4.2 admin search-analytics dashboard over `searchLogModel` —
+>   discussed and deliberately deferred (2026-09-09), not an oversight. See the note
+>   at `docs/PROJECT-SCOPE.md` §5.7 for why. Every other §4.2 admin screen is built,
+>   which closes this list.
 > - 308/308 backend tests and 188/188 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before

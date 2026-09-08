@@ -20,6 +20,10 @@ import siteConfig from "@/config/site";
  * Section grounds alternate — navy hero, ivory featured, navy stats, ivory areas, navy
  * trust, ivory testimonials, navy CTA. That rhythm is the layout's main device: it is
  * also what licenses the gold, which only passes contrast on the dark bands.
+ *
+ * The "Browse by area" tiles link to a published area's own landing page
+ * (/areas/[slug]) when it has one, and fall back to a pre-filtered search otherwise —
+ * see the areas.map() below.
  */
 
 // Decorative marks for the three trust points, in content order. Positional rather than
@@ -29,10 +33,9 @@ const TRUST_ICONS = [FiFileText, FiUser, FiShield];
 export default async function HomePage() {
   // All three reads are independent — fetch them together rather than in series.
   //
-  // Locations are fetched unfiltered on purpose: `isPublished` gates whether an area
-  // has its own landing page, and those are a later slice. These tiles are just
-  // pre-filtered searches, so an unpublished area is still a valid destination. Add
-  // `{ published: true }` here when /area/[slug] pages exist.
+  // Locations are fetched unfiltered on purpose: an unpublished area still has no
+  // /areas/[slug] page, so its tile falls back to a pre-filtered search rather than a
+  // link that would 404 — see the areas.map() href logic below.
   const [featured, locations, filterOptions, testimonialsData] = await Promise.all([
     getFeatured(6),
     getLocations(),
@@ -42,8 +45,13 @@ export default async function HomePage() {
 
   const properties = featured?.properties ?? [];
   const testimonials = testimonialsData?.testimonials ?? [];
-  // Show a manageable strip of areas; the full list lives on the search page filter.
-  const areas = (locations?.locations ?? []).slice(0, 8);
+  // Show a manageable strip of areas; the full list lives on /areas. Published areas
+  // (which have a real landing page) sort first, so alphabetical state order can't
+  // bury every one of them past the 8-tile cutoff.
+  const sortedLocations = [...(locations?.locations ?? [])].sort(
+    (a, b) => Number(b.isPublished) - Number(a.isPublished),
+  );
+  const areas = sortedLocations.slice(0, 8);
 
   return (
     <>
@@ -72,8 +80,9 @@ export default async function HomePage() {
       {/* Credibility band on navy — the first hard break from the ivory ground. */}
       <StatsBand />
 
-      {/* Browse by area — each tile is a pre-filtered search, not a separate page,
-          because area landing pages are a later slice. */}
+      {/* Browse by area — a published area links to its own landing page; an
+          unpublished one falls back to a pre-filtered search, since it has no page to
+          link to. */}
       {areas.length > 0 && (
         <Section
           eyebrow={homeContent.areas.eyebrow}
@@ -85,7 +94,11 @@ export default async function HomePage() {
             {areas.map((area) => (
               <Link
                 key={area._id}
-                href={`/properties?location=${area.slug}`}
+                href={
+                  area.isPublished
+                    ? `/areas/${area.slug}`
+                    : `/properties?location=${area.slug}`
+                }
                 className="group flex min-h-16 items-center justify-between rounded-lg border border-border bg-surface-raised px-5 py-4 transition-colors duration-200 hover:border-accent hover:bg-accent/5"
               >
                 <span className="text-ink transition-colors duration-200 group-hover:text-accent-text">

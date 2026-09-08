@@ -51,11 +51,36 @@ export const TAXONOMY_SEED = [
  * A new client in a different city edits this list — it is starting data, not a
  * fixed national gazetteer.
  */
+// Four locations (spread across two states) ship with real copy and isPublished: true,
+// so /areas and /areas/[slug] have something genuine to render out of the box — same
+// "--demo"-style precedent as the imported listings. Everything else stays unpublished
+// until a client (or a direct DB write) supplies its own area copy.
 export const LOCATION_SEED = [
   // Lagos
-  { name: "Lekki Phase 1", state: "Lagos", lga: "Eti-Osa" },
-  { name: "Ikoyi", state: "Lagos", lga: "Eti-Osa" },
-  { name: "Victoria Island", state: "Lagos", lga: "Eti-Osa" },
+  {
+    name: "Lekki Phase 1",
+    state: "Lagos",
+    lga: "Eti-Osa",
+    isPublished: true,
+    description:
+      "A planned, gated district on Lagos's eastern axis, popular with young professionals and families for its wide roads, private estates and short commute to Victoria Island. New apartment blocks sit alongside established estates, with a growing strip of restaurants, gyms and shopping along the Admiralty Way corridor.",
+  },
+  {
+    name: "Ikoyi",
+    state: "Lagos",
+    lga: "Eti-Osa",
+    isPublished: true,
+    description:
+      "One of Lagos's oldest high-end residential areas, known for tree-lined streets, embassies and large freestanding houses alongside newer luxury apartment towers. Ikoyi sits close to the island's business district, making it a common choice for executives who want a short commute without leaving a quiet, established neighbourhood.",
+  },
+  {
+    name: "Victoria Island",
+    state: "Lagos",
+    lga: "Eti-Osa",
+    isPublished: true,
+    description:
+      "Lagos's principal business district, home to corporate headquarters, hotels and a dense mix of apartments alongside the offices. Victoria Island suits tenants and buyers who want to be within walking distance of work, nightlife and the waterfront, trading a quieter setting for constant convenience.",
+  },
   { name: "Ajah", state: "Lagos", lga: "Eti-Osa" },
   { name: "Sangotedo", state: "Lagos", lga: "Eti-Osa" },
   { name: "Osapa London", state: "Lagos", lga: "Eti-Osa" },
@@ -65,7 +90,14 @@ export const LOCATION_SEED = [
   { name: "Yaba", state: "Lagos", lga: "Lagos Mainland" },
 
   // Federal Capital Territory
-  { name: "Maitama", state: "Federal Capital Territory", lga: "Abuja Municipal" },
+  {
+    name: "Maitama",
+    state: "Federal Capital Territory",
+    lga: "Abuja Municipal",
+    isPublished: true,
+    description:
+      "Abuja's most exclusive district, laid out with wide avenues, low density and some of the capital's largest diplomatic and ministerial residences. Maitama suits buyers and tenants prioritising space, security and proximity to the Central Business District over walkable street life.",
+  },
   { name: "Asokoro", state: "Federal Capital Territory", lga: "Abuja Municipal" },
   { name: "Wuse 2", state: "Federal Capital Territory", lga: "Abuja Municipal" },
   { name: "Guzape", state: "Federal Capital Territory", lga: "Abuja Municipal" },

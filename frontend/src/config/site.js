@@ -46,16 +46,15 @@ const siteConfig = {
   },
 
   // Primary navigation. Routes not yet built are intentionally absent rather than
-  // linking to a 404 — they get added with their slice.
+  // linking to a 404 — they get added with their slice. About/Team/Contact are
+  // deliberately absent here — they stay reachable from the footer's Company column,
+  // keeping the header to the paths a visitor navigates repeatedly.
   nav: [
     { href: "/properties?listingType=sale", label: "Buy" },
     { href: "/properties?listingType=rent", label: "Rent" },
     { href: "/properties", label: "All listings" },
     { href: "/services", label: "Services" },
-    { href: "/team", label: "Our team" },
     { href: "/blog", label: "Blog" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
   ],
 
   // Seller/landlord CTA destination, used by the header, mobile nav and the homepage
@@ -82,6 +81,7 @@ const siteConfig = {
         { href: "/properties?listingType=rent", label: "Homes to let" },
         { href: "/properties?isFeatured=true", label: "Featured listings" },
         { href: "/properties", label: "All listings" },
+        { href: "/areas", label: "Areas we cover" },
       ],
     },
     {

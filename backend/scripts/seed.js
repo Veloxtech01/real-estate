@@ -111,11 +111,13 @@ export async function seedLocations() {
         { slug: slugify(`${location.name}-${location.state}`) },
         {
           $setOnInsert: {
+            // Area pages start unpublished by default — they need client copy before
+            // they are worth anything to organic search. A handful of LOCATION_SEED
+            // entries set isPublished: true themselves, with real copy attached; the
+            // spread below lets those win over this default.
+            isPublished: false,
             ...location,
             slug: slugify(`${location.name}-${location.state}`),
-            // Area pages start unpublished — they need client copy before they are
-            // worth anything to organic search.
-            isPublished: false,
           },
         },
         { upsert: true }

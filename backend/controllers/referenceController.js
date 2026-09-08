@@ -66,7 +66,10 @@ export async function listLocations(req, res) {
 export async function getLocationBySlug(req, res) {
   const location = await Location.findOne({ slug: req.params.slug }).lean();
 
-  if (!location) {
+  // An unpublished area 404s identically to an unknown slug — same draft/deleted
+  // parity every other public resource (properties, agents, blog) already has, so its
+  // URL can't be browsed before a client supplies real copy.
+  if (!location || !location.isPublished) {
     throw new ApiError(404, "Location not found");
   }
 

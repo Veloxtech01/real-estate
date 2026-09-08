@@ -208,6 +208,15 @@ describe("Reference data API", () => {
     expect(response.body.data.propertyCount).toBeGreaterThan(0);
   });
 
+  it("404s an unpublished area the same as an unknown slug", async () => {
+    // Ajah ships unpublished (no area copy yet) — its landing page must not be
+    // browsable before a client (or a direct DB write) supplies real copy, matching
+    // the draft/soft-deleted 404 parity every other public resource already has.
+    const response = await request(app).get("/api/locations/ajah-lagos");
+
+    expect(response.status).toBe(404);
+  });
+
   it("groups taxonomy by category for the filter panel", async () => {
     const response = await request(app).get("/api/taxonomy");
 

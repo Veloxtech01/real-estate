@@ -189,8 +189,20 @@ Two-package repo, MERN-family stack:
 >   an inline `<style>` override — site-wide, admin chrome included. **Logo/favicon and
 >   font (`fontHeading`/`fontBody`) fields are stored but inert** — they need a separate
 >   asset/font-loading change before they render anywhere; the form captions this.
-> - **Not built:** the §4.3 daily digest — plus neighbourhood pages on the frontend.
-> - 305/305 backend tests and 188/188 frontend tests pass; both packages lint clean.
+> - **Neighbourhood pages built** — `/areas` (index, grouped by state) and
+>   `/areas/[slug]` (copy + a live grid of that area's listings via
+>   `GET /api/properties?location=slug`), closing the §4.1 gap. `GET
+>   /api/locations/:slug` now 404s an unpublished area exactly like a nonexistent one —
+>   it didn't before, unlike every other public resource; fixed alongside this slice.
+>   Four locations ship published with real copy (Lekki Phase 1, Ikoyi, Victoria
+>   Island, Maitama); everything else stays unpublished until a client supplies area
+>   copy, same status Testimonials had pre-curation. The homepage's "Browse by area"
+>   tiles link to `/areas/[slug]` for a published area and fall back to
+>   `/properties?location=slug` otherwise. **Header nav dropped About/Team/Contact**
+>   (footer's Company column already carries them) to make room without crowding;
+>   footer's Explore column gained "Areas we cover".
+> - **Not built:** the §4.3 daily digest.
+> - 306/306 backend tests and 188/188 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.

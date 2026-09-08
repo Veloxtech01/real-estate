@@ -198,8 +198,12 @@ Enum values are machine keys. The UI supplies the human labels (`self_contained`
 ## `GET /api/locations` · `GET /api/locations/:slug`
 
 - List: `{ "locations": [{ "_id", "name", "slug", "state", "lga", "description", "isPublished" }] }`.
-  `?state=Lagos`, `?published=true`.
-- Detail: `{ "location": { ... }, "propertyCount": 12 }` — count is available listings only.
+  `?state=Lagos`, `?published=true`. Unfiltered by default — the filter panel needs
+  every area regardless of landing-page readiness.
+- Detail: `{ "location": { ... }, "propertyCount": 12 }` — count is available listings
+  only. **404s an unpublished area identically to an unknown slug** — same draft/
+  deleted parity every other public resource (properties, agents, blog) already has,
+  so `/areas/[slug]` can't be browsed before a client supplies real copy.
 
 ## `GET /api/taxonomy`
 

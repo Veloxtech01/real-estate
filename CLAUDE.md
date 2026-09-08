@@ -201,8 +201,15 @@ Two-package repo, MERN-family stack:
 >   `/properties?location=slug` otherwise. **Header nav dropped About/Team/Contact**
 >   (footer's Company column already carries them) to make room without crowding;
 >   footer's Explore column gained "Areas we cover".
-> - **Not built:** the §4.3 daily digest.
-> - 306/306 backend tests and 188/188 frontend tests pass; both packages lint clean.
+> - **§4.3 daily digest built** — an in-process `node-cron` job (`backend/index.js`)
+>   fires `sendDailyDigest()` (`backend/utils/dailyDigest.js`) at 7:00 AM
+>   `Africa/Lagos` daily. It emails every active `role: "administrator"` account a
+>   compact list of enquiries created in the last 24h (name, type, property/area,
+>   submitted time, a link into `/admin/enquiries?id=`), reusing `sendEmail` from
+>   `emailService.js` — best-effort, never throws. Sends nothing on a day with zero
+>   new enquiries (no "quiet day" heartbeat). Viewings aren't included — they already
+>   have their own immediate notifications. This was the last open item in this list.
+> - 308/308 backend tests and 188/188 frontend tests pass; both packages lint clean.
 >
 > Build only what has been asked for — check the "Not built" list above before
 > assuming a feature area is in scope.
@@ -259,7 +266,8 @@ file wins**; the scope doc's product requirements otherwise still apply.
 
 Express 5, Mongoose 9, `jsonwebtoken` + `bcrypt` (cookie auth), `multer` +
 `cloudinary` (image uploads, incl. server-side compression/thumbnails/watermarking per
-scope doc §10.3), `resend` (email), `winston` (logging), `express-rate-limit`, `cors`,
+scope doc §10.3), `resend` (email), `node-cron` (§4.3 daily digest — the only
+scheduled job in the app), `winston` (logging), `express-rate-limit`, `cors`,
 `cookie-parser`, `dotenv`. ESM (`"type": "module"`) — use `import`, not `require`.
 Tests: `vitest` + `supertest` + `mongodb-memory-server`, config in `backend/vitest.config.js`.
 

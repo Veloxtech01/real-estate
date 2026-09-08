@@ -1,8 +1,10 @@
 import "dotenv/config";
+import cron from "node-cron";
 
 import { createApp } from "./app.js";
 import { connectDB, disconnectDB } from "./config/db.js";
 import logger from "./utils/logger.js";
+import { sendDailyDigest } from "./utils/dailyDigest.js";
 
 /**
  * Server entry point — connects the database, then starts the HTTP listener.
@@ -22,6 +24,13 @@ async function start() {
     const app = createApp();
     const server = app.listen(PORT, () => {
       logger.info(`Server listening on port ${PORT} (${process.env.NODE_ENV || "development"})`);
+    });
+
+    // §4.3 daily digest — 7:00 AM WAT (Africa/Lagos) daily, independent of the host
+    // server's own timezone. sendDailyDigest() handles its own errors, so there is
+    // nothing for this callback to catch.
+    cron.schedule("0 7 * * *", () => { void sendDailyDigest(); }, {
+      timezone: "Africa/Lagos",
     });
 
     /**

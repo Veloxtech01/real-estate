@@ -46,8 +46,10 @@ export default function Hero({ filterOptions }) {
         aria-hidden="true"
       />
 
-      {/* Content sits above both scrim layers. */}
-      <Container className="relative pt-20 pb-12 md:pt-28 md:pb-16 lg:pt-36">
+      {/* Content sits above both scrim layers. Top padding is modest — the header is
+          `sticky` and already sits in normal flow above the hero, not overlaid on top
+          of it, so this only needs to add breathing room, not clear a fixed header. */}
+      <Container className="relative pt-12 pb-10 md:pt-16 md:pb-12 lg:pt-14">
         <div className="max-w-3xl">
           {/* Gold eyebrow — legible here precisely because the ground is navy. */}
           <p className="mb-5 text-xs font-medium uppercase tracking-[0.22em] text-accent">
@@ -76,7 +78,11 @@ export default function Hero({ filterOptions }) {
               {homeContent.hero.action}
               <FiArrowRight size={16} aria-hidden="true" />
             </Button>
-            <Button href="/properties?listingType=rent" variant="onDarkGhost" size="lg">
+            <Button
+              href="/properties?listingType=rent"
+              variant="onDarkGhost"
+              size="lg"
+            >
               Homes to let
             </Button>
           </div>

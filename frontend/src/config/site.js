@@ -101,6 +101,8 @@ const siteConfig = {
         { href: "/team", label: "Meet the team" },
         { href: "/list-your-property", label: "List your property" },
         { href: "/contact", label: "Contact" },
+        { href: "/privacy", label: "Privacy notice" },
+        { href: "/terms", label: "Terms of use" },
       ],
     },
   ],

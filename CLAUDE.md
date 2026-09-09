@@ -210,6 +210,13 @@ Two-package repo, MERN-family stack:
 >   `emailService.js` — best-effort, never throws. Sends nothing on a day with zero
 >   new enquiries (no "quiet day" heartbeat). Viewings aren't included — they already
 >   have their own immediate notifications.
+> - **§4.1/§11 legal pages built** — `/privacy` and `/terms`, closing the last §4.1 gap
+>   (`listingDisclaimer` on every property page already covered the disclaimer; no
+>   cookie notice was built since the site sets no tracking/advertising cookies).
+>   Frontend-only, no backend change: static content in `src/content/legal.js`, same
+>   hardcoded-in-content pattern as About/Services/Contact, linked from the footer's
+>   Company column. **The copy is a drafted placeholder** — §11 requires both
+>   documents be reviewed by a Nigerian lawyer before launch; don't treat it as final.
 > - **Not built:** the §4.2 admin search-analytics dashboard over `searchLogModel` —
 >   discussed and deliberately deferred (2026-09-09), not an oversight. See the note
 >   at `docs/PROJECT-SCOPE.md` §5.7 for why. Every other §4.2 admin screen is built,

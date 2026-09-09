@@ -33,8 +33,11 @@ export default function MobileNav() {
       {open && (
         <div
           // `on-dark` keeps the focus ring visible against the navy sheet.
+          // z-lightbox (not z-dropdown): this is a full-screen overlay that must
+          // paint above the sticky Header (z-header), or the header covers the
+          // drawer's own close button and intercepts taps meant for it.
           className="on-dark fixed inset-0 overflow-y-auto bg-ink-deep"
-          style={{ zIndex: "var(--z-dropdown)" }}
+          style={{ zIndex: "var(--z-lightbox)" }}
           role="dialog"
           aria-modal="true"
           aria-label="Site menu"

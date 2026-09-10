@@ -4,6 +4,7 @@ import "./globals.css";
 import siteConfig from "@/config/site";
 import { organizationJsonLd } from "@/lib/seo";
 import { getSettings } from "@/lib/api/server";
+import ServerKeepAlive from "@/components/ServerKeepAlive";
 
 // The core brand tokens a client rebrand can override — matches THEME_COLOR_KEYS in
 // backend/controllers/adminSettingsController.js. Status/structural colors stay fixed
@@ -110,6 +111,10 @@ export default async function RootLayout({ children }) {
         {children}
         {/* Single toast portal for the whole app — components call toast() directly. */}
         <Toaster position="bottom-center" />
+        {/* Pings the backend on every route (and on an interval) so a sleeping
+            Render instance wakes in the background. Renders nothing and never
+            blocks — the page above has already rendered by the time this fires. */}
+        <ServerKeepAlive />
       </body>
     </html>
   );

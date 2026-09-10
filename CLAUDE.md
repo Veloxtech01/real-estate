@@ -371,6 +371,12 @@ Vite-based sibling project — Next.js needs its own v4 integration.
   place admin URLs are written.
 - Put auth headers, error normalization, and 401 handling in **interceptors**,
   not in every call site.
+- **The one deliberate exception is the Render keep-alive ping** —
+  [`ServerKeepAlive`](frontend/src/components/ServerKeepAlive.jsx) fires a raw
+  `fetch` (not the shared Axios instance) to `/api/health` on every route change and
+  on a 4-minute interval, to wake/keep the free-tier backend warm before the visitor
+  makes a real API call. Raw `fetch` on purpose: it must skip cookies and the 401
+  interceptor entirely, and must never throw. Mounted once in the root layout.
 - The base URL comes from an env var (`NEXT_PUBLIC_`-prefixed for anything the browser
   needs, matching Next.js's convention — not Vite's `VITE_` prefix). Never hardcode
   `localhost:PORT`.
